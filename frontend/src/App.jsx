@@ -9,6 +9,12 @@ import Footer from "./components/Footer";
 import Signup from "./components/Signup";
 import Login from "./components/Login";
 
+// Import dashboards
+import UserDashboard from "./users/Dashboard";
+import AdminDashboard from "./admin/Dashboard";
+import HodDashboard from "./hod/Dashboard";
+import LabasistDashboard from "./labasist/Dashboard";
+
 function App() {
   return (
     <BrowserRouter>
@@ -24,6 +30,12 @@ function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/signup" element={<Signup/>} />
         <Route path="/login" element={<Login/>} />
+
+        {/* Dashboard routes */}
+        <Route path="/user/dashboard" element={<UserDashboard />} />
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/hod/dashboard" element={<HodDashboard />} />
+        <Route path="/labasist/dashboard" element={<LabasistDashboard />} />
 
       </Routes>
     <Footer/>

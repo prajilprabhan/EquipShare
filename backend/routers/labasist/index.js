@@ -1,0 +1,368 @@
+const express = require("express");
+const router = express.Router();
+const { verifyToken, authorizeRoles } = require("../../middleware/auth");
+const Equipment = require("../../models/Equipment");
+const Booking = require("../../models/Booking");
+
+// Apply verifyToken and labassistant-only role check to all lab assistant routes
+router.use(verifyToken);
+router.use(authorizeRoles("labasist"));
+
+/**
+ * @route   POST /api/labasist/equipments
+ * @desc    Add new equipment
+ * @access  Private (Lab Assistant)
+ */
+router.post("/equipments", async (req, res) => {
+  try {
+    const { name, description, category, department, modelNumber, serialNumber, totalQuantity, location, imageUrl } = req.body;
+
+    if (!name || !description || !category || !department) {
+      return res.status(400).json({
+        success: false,
+        message: "Please fill in all required fields (name, description, category, department)."
+      });
+    }
+
+    // If serialNumber is provided, check uniqueness
+    if (serialNumber) {
+      const existing = await Equipment.findOne({ serialNumber: serialNumber.trim() });
+      if (existing) {
+        return res.status(400).json({
+          success: false,
+          message: "Equipment with this serial number already exists."
+        });
+      }
+    }
+
+    const qty = parseInt(totalQuantity) || 1;
+
+    const equipment = new Equipment({
+      name: name.trim(),
+      description: description.trim(),
+      category: category.trim(),
+      department: department.trim(),
+      modelNumber: modelNumber ? modelNumber.trim() : undefined,
+      serialNumber: serialNumber ? serialNumber.trim() : undefined,
+      totalQuantity: qty,
+      availableQuantity: qty, // initially same as total
+      status: "available",
+      location: location ? location.trim() : undefined,
+      imageUrl: imageUrl ? imageUrl.trim() : undefined,
+      addedBy: req.user._id
+    });
+
+    await equipment.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Equipment added successfully.",
+      equipment
+    });
+  } catch (error) {
+    console.error("Add Equipment Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error adding equipment.",
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/labasist/equipments
+ * @desc    Get all equipments in Lab Assistant's department
+ * @access  Private (Lab Assistant)
+ */
+router.get("/equipments", async (req, res) => {
+  try {
+    const equipments = await Equipment.find({ department: req.user.department }).sort({ name: 1 });
+    return res.status(200).json({
+      success: true,
+      count: equipments.length,
+      equipments
+    });
+  } catch (error) {
+    console.error("Labasist Get Equipments Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error fetching equipments.",
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/labasist/equipments/:id
+ * @desc    Update equipment details
+ * @access  Private (Lab Assistant)
+ */
+router.put("/equipments/:id", async (req, res) => {
+  try {
+    const { name, description, category, department, modelNumber, serialNumber, totalQuantity, availableQuantity, status, location, imageUrl } = req.body;
+
+    const equipment = await Equipment.findById(req.params.id);
+    if (!equipment) {
+      return res.status(404).json({
+        success: false,
+        message: "Equipment not found."
+      });
+    }
+
+    // Check serialNumber unique if modified
+    if (serialNumber && serialNumber.trim() !== equipment.serialNumber) {
+      const existing = await Equipment.findOne({ serialNumber: serialNumber.trim() });
+      if (existing) {
+        return res.status(400).json({
+          success: false,
+          message: "Equipment with this serial number already exists."
+        });
+      }
+    }
+
+    if (name) equipment.name = name.trim();
+    if (description) equipment.description = description.trim();
+    if (category) equipment.category = category.trim();
+    if (department) equipment.department = department.trim();
+    if (modelNumber) equipment.modelNumber = modelNumber.trim();
+    if (serialNumber) equipment.serialNumber = serialNumber.trim();
+    if (location) equipment.location = location.trim();
+    if (imageUrl) equipment.imageUrl = imageUrl.trim();
+    if (status) equipment.status = status;
+
+    if (totalQuantity !== undefined) {
+      const prevTotal = equipment.totalQuantity;
+      const newTotal = parseInt(totalQuantity) || 1;
+      const diff = newTotal - prevTotal;
+      equipment.totalQuantity = newTotal;
+      // Adjust available quantity by same difference unless availableQuantity is explicitly provided
+      if (availableQuantity === undefined) {
+        equipment.availableQuantity = Math.max(0, equipment.availableQuantity + diff);
+      }
+    }
+
+    if (availableQuantity !== undefined) {
+      equipment.availableQuantity = parseInt(availableQuantity) || 0;
+    }
+
+    await equipment.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Equipment updated successfully.",
+      equipment
+    });
+  } catch (error) {
+    console.error("Update Equipment Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error updating equipment.",
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   DELETE /api/labasist/equipments/:id
+ * @desc    Delete equipment
+ * @access  Private (Lab Assistant)
+ */
+router.delete("/equipments/:id", async (req, res) => {
+  try {
+    const equipment = await Equipment.findById(req.params.id);
+    if (!equipment) {
+      return res.status(404).json({
+        success: false,
+        message: "Equipment not found."
+      });
+    }
+
+    // Check if there are active borrowings before deleting
+    const activeBookings = await Booking.findOne({
+      equipment: req.params.id,
+      status: { $in: ["approved", "borrowed"] }
+    });
+
+    if (activeBookings) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot delete equipment with active bookings or borrowed items."
+      });
+    }
+
+    await Equipment.findByIdAndDelete(req.params.id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Equipment deleted successfully."
+    });
+  } catch (error) {
+    console.error("Delete Equipment Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error deleting equipment.",
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/labasist/bookings
+ * @desc    View all booking requests (filters by department matching the lab assistant's)
+ * @access  Private (Lab Assistant)
+ */
+router.get("/bookings", async (req, res) => {
+  try {
+    // Populate equipment to check department
+    const bookings = await Booking.find()
+      .populate({
+        path: "equipment",
+        match: { department: req.user.department } // restrict to lab assistant's department
+      })
+      .populate("user", "name email studentId phone department semester")
+      .sort({ createdAt: -1 });
+
+    // Filter out bookings that don't match the department (i.e. match returned null)
+    const filteredBookings = bookings.filter(b => b.equipment !== null);
+
+    return res.status(200).json({
+      success: true,
+      count: filteredBookings.length,
+      bookings: filteredBookings
+    });
+  } catch (error) {
+    console.error("Labasist Bookings Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error fetching bookings.",
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/labasist/bookings/:id/status
+ * @desc    Approve/Reject/Mark Borrowed/Mark Returned a booking request
+ * @access  Private (Lab Assistant)
+ */
+router.put("/bookings/:id/status", async (req, res) => {
+  try {
+    const { status, rejectionReason } = req.body;
+    const allowedStatuses = ["approved", "rejected", "borrowed", "returned"];
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Must be one of: ${allowedStatuses.join(", ")}`
+      });
+    }
+
+    const booking = await Booking.findById(req.params.id).populate("equipment");
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking request not found."
+      });
+    }
+
+    const equipment = booking.equipment;
+    const oldStatus = booking.status;
+
+    // Check permissions (must be same department as assistant)
+    if (equipment.department !== req.user.department) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. This booking belongs to another department's equipment."
+      });
+    }
+
+    // Handle status transitions
+    if (status === "approved" && oldStatus === "pending") {
+      // Validate quantity
+      if (equipment.availableQuantity < booking.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient equipment available. Only ${equipment.availableQuantity} available, requested ${booking.quantity}.`
+        });
+      }
+      equipment.availableQuantity -= booking.quantity;
+      await equipment.save();
+    } else if (status === "borrowed" && oldStatus === "pending") {
+      // Direct borrow from pending
+      if (equipment.availableQuantity < booking.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient equipment available. Only ${equipment.availableQuantity} available, requested ${booking.quantity}.`
+        });
+      }
+      equipment.availableQuantity -= booking.quantity;
+      await equipment.save();
+    } else if (status === "rejected" && (oldStatus === "approved" || oldStatus === "borrowed")) {
+      // Returning items/restoring inventory on rejection after approval
+      equipment.availableQuantity += booking.quantity;
+      await equipment.save();
+    } else if (status === "returned" && (oldStatus === "approved" || oldStatus === "borrowed")) {
+      // Returned from approved or borrowed
+      equipment.availableQuantity += booking.quantity;
+      booking.returnedDate = new Date();
+      await equipment.save();
+    }
+
+    booking.status = status;
+    booking.approvedBy = req.user._id;
+    if (status === "rejected" && rejectionReason) {
+      booking.rejectionReason = rejectionReason;
+    }
+
+    await booking.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Booking status successfully updated to ${status}.`,
+      booking
+    });
+
+  } catch (error) {
+    console.error("Update Booking Status Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error updating booking status.",
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/labasist/history
+ * @desc    Get booking history of Lab Assistant's department
+ * @access  Private (Lab Assistant)
+ */
+router.get("/history", async (req, res) => {
+  try {
+    const bookings = await Booking.find()
+      .populate({
+        path: "equipment",
+        match: { department: req.user.department }
+      })
+      .populate("user", "name email studentId phone department semester")
+      .populate("approvedBy", "name email")
+      .sort({ createdAt: -1 });
+
+    const filteredHistory = bookings.filter(b => b.equipment !== null);
+
+    return res.status(200).json({
+      success: true,
+      count: filteredHistory.length,
+      bookings: filteredHistory
+    });
+  } catch (error) {
+    console.error("Labasist Get History Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error retrieving history.",
+      error: error.message
+    });
+  }
+});
+
+module.exports = router;

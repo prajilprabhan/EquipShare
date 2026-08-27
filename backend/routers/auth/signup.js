@@ -73,19 +73,15 @@ router.post("/signup", async (req, res) => {
       department: department.trim(),
       semester: semester.trim(),
       password,
-      role: "student",
+      role: targetRole,
       verificationStatus
     });
 
     // 7. Save to Database
     await newUser.save();
 
-    // 8. Generate JWT Token
-    const token = jwt.sign(
-      { id: newUser._id, role: newUser.role },
-      process.env.JWT_SECRET || "super_secret_student_key_12345",
-      { expiresIn: "7d" }
-    );
+    // 8. Generate User ID Token (No JWT)
+    const token = newUser._id.toString();
 
     // 9. Format response (exclude password)
     const userResponse = {
@@ -104,7 +100,9 @@ router.post("/signup", async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Registration successful. Your account is pending HOD verification.",
+      message: targetRole === "student" 
+        ? "Registration successful. Your account is pending HOD verification."
+        : "Registration successful.",
       token,
       user: userResponse
     });

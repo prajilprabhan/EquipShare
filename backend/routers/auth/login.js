@@ -54,12 +54,8 @@ router.post("/login", async (req, res) => {
       }
     }
 
-    // 5. Generate JWT Token
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET || "super_secret_student_key_12345",
-      { expiresIn: "7d" }
-    );
+    // 5. Generate User ID Token (No JWT)
+    const token = user._id.toString();
 
     // 6. Format response (exclude password)
     const userResponse = {
