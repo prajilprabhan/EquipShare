@@ -1,0 +1,920 @@
+{
+	"info": {
+		"_postman_id": "8a06e938-4e89-4a0b-80df-4be29158fb71",
+		"name": "EquipShare API",
+		"description": "API collection for testing the EquipShare booking platform. Covers Auth, Students, Lab Assistants, HODs, and Admin endpoints.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Signup (Student)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe\",\n  \"studentId\": \"CS101\",\n  \"email\": \"johndoe@college.edu\",\n  \"phone\": \"9876543210\",\n  \"department\": \"computer_science\",\n  \"semester\": \"S5\",\n  \"password\": \"student123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/signup",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"signup"
+							]
+						},
+						"description": "Registers a new student account. Status defaults to 'pending' until verified by HOD."
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"if (response.success && response.token) {",
+									"    pm.environment.set(\"token\", response.token);",
+									"    console.log(\"Saved login token to environment: \" + response.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@gmail.com\",\n  \"password\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Log in to the system. Automatically sets the environment variable 'token' if login is successful."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"profile"
+							]
+						},
+						"description": "Fetch details of the currently logged-in user."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Updated\",\n  \"phone\": \"9998887770\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"profile"
+							]
+						},
+						"description": "Updates details on the current user's profile."
+					},
+					"response": []
+				},
+				{
+					"name": "Check Auth Token",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/check",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"check"
+							]
+						},
+						"description": "Verifies that the provided token is valid."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Logs out the user and clears context."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Student Operations",
+			"item": [
+				{
+					"name": "Browse Equipments",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/user/equipments?department=computer_science",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"equipments"
+							],
+							"query": [
+								{
+									"key": "department",
+									"value": "computer_science"
+								},
+								{
+									"key": "category",
+									"value": "electronics",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "oscilloscope",
+									"disabled": true
+								}
+							]
+						},
+						"description": "List all available equipments with filters for department, category or search query."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Booking Request",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"equipmentId\": \"REPLACE_WITH_EQUIPMENT_ID\",\n  \"quantity\": 1,\n  \"purpose\": \"Microprocessor Lab Exam preparation\",\n  \"startDate\": \"2026-09-01T09:00:00.000Z\",\n  \"endDate\": \"2026-09-03T16:00:00.000Z\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/user/bookings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"bookings"
+							]
+						},
+						"description": "Submit a booking request for an equipment. Quantities are checked and validated."
+					},
+					"response": []
+				},
+				{
+					"name": "View My Bookings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/user/bookings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"bookings"
+							]
+						},
+						"description": "View all booking requests submitted by the current student."
+					},
+					"response": []
+				},
+				{
+					"name": "View Specific Booking",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/user/bookings/REPLACE_WITH_BOOKING_ID",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"bookings",
+								"REPLACE_WITH_BOOKING_ID"
+							]
+						},
+						"description": "Fetch details of a single booking request by ID."
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Booking Request",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/user/bookings/REPLACE_WITH_BOOKING_ID",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"user",
+								"bookings",
+								"REPLACE_WITH_BOOKING_ID"
+							]
+						},
+						"description": "Cancel a pending booking request."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Lab Assistant Operations",
+			"item": [
+				{
+					"name": "Add Equipment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Arduino Uno Kit\",\n  \"description\": \"Development board kit for microcontroller labs\",\n  \"category\": \"Microcontrollers\",\n  \"department\": \"computer_science\",\n  \"modelNumber\": \"Rev3\",\n  \"serialNumber\": \"ARD-UNO-0938\",\n  \"totalQuantity\": 5,\n  \"location\": \"Hardware Lab Rack B\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/labasist/equipments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"labasist",
+								"equipments"
+							]
+						},
+						"description": "Add new equipment to the assistant's department inventory."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Department Equipments",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/labasist/equipments",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"labasist",
+								"equipments"
+							]
+						},
+						"description": "Get all equipments registered in the assistant's department."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Equipment",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"totalQuantity\": 8,\n  \"location\": \"Hardware Lab Room 102\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/labasist/equipments/REPLACE_WITH_EQUIPMENT_ID",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"labasist",
+								"equipments",
+								"REPLACE_WITH_EQUIPMENT_ID"
+							]
+						},
+						"description": "Update specific equipment parameters."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Equipment",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/labasist/equipments/REPLACE_WITH_EQUIPMENT_ID",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"labasist",
+								"equipments",
+								"REPLACE_WITH_EQUIPMENT_ID"
+							]
+						},
+						"description": "Delete equipment. Blocked if there are active bookings or borrowed items."
+					},
+					"response": []
+				},
+				{
+					"name": "View Department Bookings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/labasist/bookings",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"labasist",
+								"bookings"
+							]
+						},
+						"description": "View all booking requests submitted for the assistant's department equipment."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Booking Status",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"approved\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/labasist/bookings/REPLACE_WITH_BOOKING_ID/status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"labasist",
+								"bookings",
+								"REPLACE_WITH_BOOKING_ID",
+								"status"
+							]
+						},
+						"description": "Approve, reject, issue (borrowed), or complete (returned) a booking. Available quantity updates automatically. Options: 'approved', 'rejected', 'borrowed', 'returned'."
+					},
+					"response": []
+				},
+				{
+					"name": "View Department History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/labasist/history",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"labasist",
+								"history"
+							]
+						},
+						"description": "Retrieve history logs of all bookings belonging to the assistant's department."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "HOD Operations",
+			"item": [
+				{
+					"name": "Get Pending Students",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/hod/pending-students",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"hod",
+								"pending-students"
+							]
+						},
+						"description": "Get all student registration requests awaiting verification in the HOD's department."
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Students",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/hod/students",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"hod",
+								"students"
+							]
+						},
+						"description": "Get list of all students under the HOD's department."
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Student Account",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"approved\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/hod/students/REPLACE_WITH_STUDENT_USER_ID/verify",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"hod",
+								"students",
+								"REPLACE_WITH_STUDENT_USER_ID",
+								"verify"
+							]
+						},
+						"description": "Approve or reject student access request. Allowed status values: 'approved', 'rejected'."
+					},
+					"response": []
+				},
+				{
+					"name": "Add Lab Assistant",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sarah Assistant\",\n  \"studentId\": \"STAFF502\",\n  \"email\": \"sarah@college.edu\",\n  \"phone\": \"8887776665\",\n  \"password\": \"staffpasswd\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/hod/labassistants",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"hod",
+								"labassistants"
+							]
+						},
+						"description": "Create a new Lab Assistant account locked under the HOD's department."
+					},
+					"response": []
+				},
+				{
+					"name": "View Department History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/hod/history",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"hod",
+								"history"
+							]
+						},
+						"description": "Fetch booking log records for all equipments belonging to the HOD's department."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin Operations",
+			"item": [
+				{
+					"name": "List All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users"
+							]
+						},
+						"description": "Retrieve list of all users registered on the platform."
+					},
+					"response": []
+				},
+				{
+					"name": "Create User Manually",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Professor Higgins\",\n  \"studentId\": \"HOD_ECE\",\n  \"email\": \"higgins@college.edu\",\n  \"phone\": \"9898989898\",\n  \"department\": \"electronics_communication\",\n  \"semester\": \"N/A\",\n  \"password\": \"hodpassword\",\n  \"role\": \"hod\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users"
+							]
+						},
+						"description": "Admin manually creates a user with approved status immediately. Roles: 'student', 'hod', 'labasist', 'admin'."
+					},
+					"response": []
+				},
+				{
+					"name": "View All Booking History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/history?department=computer_science",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"history"
+							],
+							"query": [
+								{
+									"key": "department",
+									"value": "computer_science"
+								}
+							]
+						},
+						"description": "Retrieve bookings records for all departments combined (optionally filter by department)."
+					},
+					"response": []
+				},
+				{
+					"name": "Change User Role / Status",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"admin\",\n  \"verificationStatus\": \"approved\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/REPLACE_WITH_USER_ID/role",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"REPLACE_WITH_USER_ID",
+								"role"
+							]
+						},
+						"description": "Allows administrative adjustment of roles and verification statuses."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User Account",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/REPLACE_WITH_USER_ID",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"users",
+								"REPLACE_WITH_USER_ID"
+							]
+						},
+						"description": "Delete a user account and purge all their related bookings logs."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Dashboard Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/admin/stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"stats"
+							]
+						},
+						"description": "Fetch overall count statistics and status charts configurations."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:5000",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

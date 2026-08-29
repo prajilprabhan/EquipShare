@@ -53,4 +53,20 @@ const BookingSchema = new mongoose.Schema(
   }
 );
 
+// Static method to check and update overdue bookings
+BookingSchema.statics.checkOverdue = async function () {
+  const now = new Date();
+  const result = await this.updateMany(
+    {
+      status: "borrowed",
+      endDate: { $lt: now }
+    },
+    {
+      $set: { status: "overdue" }
+    }
+  );
+  return result;
+};
+
 module.exports = mongoose.model("Booking", BookingSchema);
+

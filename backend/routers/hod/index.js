@@ -189,6 +189,9 @@ router.post("/labassistants", async (req, res) => {
  */
 router.get("/history", async (req, res) => {
   try {
+    // Run overdue checker to ensure stats and status are correct
+    await Booking.checkOverdue();
+
     // Find equipment belonging to HOD's department
     const equipments = await Equipment.find({ department: req.user.department });
     const equipIds = equipments.map(e => e._id);

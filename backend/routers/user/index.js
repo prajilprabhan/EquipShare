@@ -122,6 +122,9 @@ router.post("/bookings", async (req, res) => {
  */
 router.get("/bookings", async (req, res) => {
   try {
+    // Run overdue checker to ensure stats and status are correct
+    await Booking.checkOverdue();
+
     const bookings = await Booking.find({ user: req.user._id })
       .populate("equipment")
       .populate("approvedBy", "name email")
@@ -149,6 +152,9 @@ router.get("/bookings", async (req, res) => {
  */
 router.get("/bookings/:id", async (req, res) => {
   try {
+    // Run overdue checker to ensure status is fresh
+    await Booking.checkOverdue();
+
     const booking = await Booking.findOne({ _id: req.params.id, user: req.user._id })
       .populate("equipment")
       .populate("approvedBy", "name email");
@@ -174,4 +180,45 @@ router.get("/bookings/:id", async (req, res) => {
   }
 });
 
+/**
+ * @route   DELETE /api/user/bookings/:id
+ * @desc    Cancel/delete a pending booking request
+ * @access  Private (Student)
+ */
+router.delete("/bookings/:id", async (req, res) => {
+  try {
+    const booking = await Booking.findOne({ _id: req.params.id, user: req.user._id });
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking request not found."
+      });
+    }
+
+    // A student can only cancel a pending booking request.
+    // If it is already approved, borrowed, etc., the HOD or Lab Assistant must handle it.
+    if (booking.status !== "pending") {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot cancel a booking request that is already ${booking.status}.`
+      });
+    }
+
+    await Booking.findByIdAndDelete(req.params.id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Booking request cancelled successfully."
+    });
+  } catch (error) {
+    console.error("Cancel Booking Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error cancelling booking request.",
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
+

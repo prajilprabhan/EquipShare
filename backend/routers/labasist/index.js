@@ -206,29 +206,24 @@ router.delete("/equipments/:id", async (req, res) => {
   }
 });
 
-/**
- * @route   GET /api/labasist/bookings
- * @desc    View all booking requests (filters by department matching the lab assistant's)
- * @access  Private (Lab Assistant)
- */
 router.get("/bookings", async (req, res) => {
   try {
-    // Populate equipment to check department
-    const bookings = await Booking.find()
-      .populate({
-        path: "equipment",
-        match: { department: req.user.department } // restrict to lab assistant's department
-      })
+    // Run overdue checker to ensure stats and status are correct
+    await Booking.checkOverdue();
+
+    // Find equipment belonging to lab assistant's department
+    const equipments = await Equipment.find({ department: req.user.department });
+    const equipIds = equipments.map(e => e._id);
+
+    const bookings = await Booking.find({ equipment: { $in: equipIds } })
+      .populate("equipment")
       .populate("user", "name email studentId phone department semester")
       .sort({ createdAt: -1 });
 
-    // Filter out bookings that don't match the department (i.e. match returned null)
-    const filteredBookings = bookings.filter(b => b.equipment !== null);
-
     return res.status(200).json({
       success: true,
-      count: filteredBookings.length,
-      bookings: filteredBookings
+      count: bookings.length,
+      bookings
     });
   } catch (error) {
     console.error("Labasist Bookings Error:", error);
@@ -332,28 +327,25 @@ router.put("/bookings/:id/status", async (req, res) => {
   }
 });
 
-/**
- * @route   GET /api/labasist/history
- * @desc    Get booking history of Lab Assistant's department
- * @access  Private (Lab Assistant)
- */
 router.get("/history", async (req, res) => {
   try {
-    const bookings = await Booking.find()
-      .populate({
-        path: "equipment",
-        match: { department: req.user.department }
-      })
+    // Run overdue checker to ensure stats and status are correct
+    await Booking.checkOverdue();
+
+    // Find equipment belonging to lab assistant's department
+    const equipments = await Equipment.find({ department: req.user.department });
+    const equipIds = equipments.map(e => e._id);
+
+    const bookings = await Booking.find({ equipment: { $in: equipIds } })
+      .populate("equipment")
       .populate("user", "name email studentId phone department semester")
       .populate("approvedBy", "name email")
       .sort({ createdAt: -1 });
 
-    const filteredHistory = bookings.filter(b => b.equipment !== null);
-
     return res.status(200).json({
       success: true,
-      count: filteredHistory.length,
-      bookings: filteredHistory
+      count: bookings.length,
+      bookings
     });
   } catch (error) {
     console.error("Labasist Get History Error:", error);

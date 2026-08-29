@@ -110,6 +110,9 @@ router.post("/users", async (req, res) => {
  */
 router.get("/history", async (req, res) => {
   try {
+    // Run overdue checker to ensure stats and status are correct
+    await Booking.checkOverdue();
+
     const { department } = req.query;
     let query = {};
 
@@ -245,6 +248,9 @@ router.delete("/users/:id", async (req, res) => {
  */
 router.get("/stats", async (req, res) => {
   try {
+    // Run overdue checker to ensure stats and status are correct
+    await Booking.checkOverdue();
+
     const totalUsers = await User.countDocuments();
     const totalEquipments = await Equipment.countDocuments();
     const totalBookings = await Booking.countDocuments();
