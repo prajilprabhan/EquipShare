@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ function AdminDashboard() {
     try {
       setLoading(true);
       // Fetch stats
-      const statsRes = await fetch("http://localhost:5000/api/admin/stats", {
+      const statsRes = await fetch(`${API_BASE_URL}/api/admin/stats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const statsData = await statsRes.json();
@@ -55,7 +56,7 @@ function AdminDashboard() {
       }
 
       // Fetch users
-      const usersRes = await fetch("http://localhost:5000/api/admin/users", {
+      const usersRes = await fetch(`${API_BASE_URL}/api/admin/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const usersData = await usersRes.json();
@@ -64,7 +65,7 @@ function AdminDashboard() {
       }
 
       // Fetch history
-      const historyRes = await fetch("http://localhost:5000/api/admin/history", {
+      const historyRes = await fetch(`${API_BASE_URL}/api/admin/history`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const historyData = await historyRes.json();
@@ -85,7 +86,7 @@ function AdminDashboard() {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch("http://localhost:5000/api/admin/users", {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -123,7 +124,7 @@ function AdminDashboard() {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/users/${userId}/role`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/role`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -154,7 +155,7 @@ function AdminDashboard() {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/users/${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -163,6 +164,7 @@ function AdminDashboard() {
       if (!response.ok) {
         throw new Error(data.message || "Failed to delete user.");
       }
+
 
       setSuccess("User deleted successfully.");
       fetchAdminData(token);

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 function LabasistDashboard() {
   const navigate = useNavigate();
@@ -52,7 +53,7 @@ function LabasistDashboard() {
     try {
       setLoading(true);
       // Fetch bookings
-      const response = await fetch("http://localhost:5000/api/labasist/bookings", {
+      const response = await fetch(`${API_BASE_URL}/api/labasist/bookings`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -61,7 +62,7 @@ function LabasistDashboard() {
       }
 
       // Fetch equipments
-      const equipRes = await fetch("http://localhost:5000/api/labasist/equipments", {
+      const equipRes = await fetch(`${API_BASE_URL}/api/labasist/equipments`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const equipData = await equipRes.json();
@@ -70,7 +71,7 @@ function LabasistDashboard() {
       }
 
       // Fetch history
-      const histRes = await fetch("http://localhost:5000/api/labasist/history", {
+      const histRes = await fetch(`${API_BASE_URL}/api/labasist/history`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const histData = await histRes.json();
@@ -91,7 +92,7 @@ function LabasistDashboard() {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch("http://localhost:5000/api/labasist/equipments", {
+      const response = await fetch(`${API_BASE_URL}/api/labasist/equipments`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -131,7 +132,7 @@ function LabasistDashboard() {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch(`http://localhost:5000/api/labasist/bookings/${bookingId}/status`, {
+      const response = await fetch(`${API_BASE_URL}/api/labasist/bookings/${bookingId}/status`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -169,7 +170,7 @@ function LabasistDashboard() {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch(`http://localhost:5000/api/labasist/equipments/${editingEquip._id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/labasist/equipments/${editingEquip._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -198,7 +199,7 @@ function LabasistDashboard() {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch(`http://localhost:5000/api/labasist/equipments/${equipId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/labasist/equipments/${equipId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -214,6 +215,7 @@ function LabasistDashboard() {
       setError(err.message || "Something went wrong.");
     }
   };
+
 
   if (loading && !user) {
     return (

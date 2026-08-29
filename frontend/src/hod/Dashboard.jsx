@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 function HodDashboard() {
   const navigate = useNavigate();
@@ -43,7 +44,7 @@ function HodDashboard() {
     try {
       setLoading(true);
       // Fetch pending
-      const response = await fetch("http://localhost:5000/api/hod/pending-students", {
+      const response = await fetch(`${API_BASE_URL}/api/hod/pending-students`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -52,7 +53,7 @@ function HodDashboard() {
       }
 
       // Fetch all students
-      const allRes = await fetch("http://localhost:5000/api/hod/students", {
+      const allRes = await fetch(`${API_BASE_URL}/api/hod/students`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const allData = await allRes.json();
@@ -61,7 +62,7 @@ function HodDashboard() {
       }
 
       // Fetch history
-      const histRes = await fetch("http://localhost:5000/api/hod/history", {
+      const histRes = await fetch(`${API_BASE_URL}/api/hod/history`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const histData = await histRes.json();
@@ -81,7 +82,7 @@ function HodDashboard() {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch(`http://localhost:5000/api/hod/students/${studentId}/verify`, {
+      const response = await fetch(`${API_BASE_URL}/api/hod/students/${studentId}/verify`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -109,7 +110,7 @@ function HodDashboard() {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch("http://localhost:5000/api/hod/labassistants", {
+      const response = await fetch(`${API_BASE_URL}/api/hod/labassistants`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -117,6 +118,7 @@ function HodDashboard() {
         },
         body: JSON.stringify(assistForm),
       });
+
 
       const data = await response.json();
       if (!response.ok) {

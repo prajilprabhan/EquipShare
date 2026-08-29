@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 function UserDashboard() {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ function UserDashboard() {
     try {
       setLoading(true);
       // Fetch Equipments
-      const equipRes = await fetch("http://localhost:5000/api/user/equipments", {
+      const equipRes = await fetch(`${API_BASE_URL}/api/user/equipments`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const equipData = await equipRes.json();
@@ -49,7 +50,7 @@ function UserDashboard() {
       }
 
       // Fetch Bookings
-      const bookingRes = await fetch("http://localhost:5000/api/user/bookings", {
+      const bookingRes = await fetch(`${API_BASE_URL}/api/user/bookings`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const bookingData = await bookingRes.json();
@@ -75,7 +76,7 @@ function UserDashboard() {
 
     const token = localStorage.getItem("token");
     try {
-      const response = await fetch("http://localhost:5000/api/user/bookings", {
+      const response = await fetch(`${API_BASE_URL}/api/user/bookings`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -98,6 +99,34 @@ function UserDashboard() {
       setSuccess("Booking request submitted successfully! Pending approval.");
       setBookingForm({ quantity: 1, purpose: "", startDate: "", endDate: "" });
       setSelectedEquip(null);
+      
+      // Refresh bookings
+      fetchDashboardData(token);
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    }
+  };
+
+  const handleCancelBooking = async (bookingId) => {
+    if (!window.confirm("Are you sure you want to cancel this booking request?")) return;
+    setError("");
+    setSuccess("");
+
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/user/bookings/${bookingId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to cancel booking request.");
+      }
+
+      setSuccess("Booking request cancelled successfully.");
       
       // Refresh bookings
       fetchDashboardData(token);
@@ -306,6 +335,14 @@ function UserDashboard() {
                       <p>Dates: <strong>{new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}</strong></p>
                       {booking.rejectionReason && (
                         <p className="text-red-600 mt-2 bg-red-50 p-2 rounded">Reason: {booking.rejectionReason}</p>
+                      )}
+                      {booking.status === "pending" && (
+                        <button
+                          onClick={() => handleCancelBooking(booking._id)}
+                          className="mt-3 w-full rounded-lg bg-red-50 py-1.5 text-center text-xs font-semibold text-red-600 border border-red-100 hover:bg-red-100/50 hover:text-red-700 transition"
+                        >
+                          Cancel Request
+                        </button>
                       )}
                     </div>
                   </div>
