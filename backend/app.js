@@ -15,6 +15,8 @@ const userRoute = require("./routers/user/index");
 const adminRoute = require("./routers/admin/index");
 const hodRoute = require("./routers/hod/index");
 const labasistRoute = require("./routers/labasist/index");
+const contactRoute = require("./routers/contact/index");
+const equipmentsRoute = require("./routers/equipments/index");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -40,6 +42,10 @@ app.use("/api/user", userRoute);
 app.use("/api/admin", adminRoute);
 app.use("/api/hod", hodRoute);
 app.use("/api/labasist", labasistRoute);
+app.use("/api/contact", contactRoute);
+app.use("/contact", contactRoute);
+app.use("/api/equipments", equipmentsRoute);
+app.use("/equipments", equipmentsRoute);
 
 // Default Route
 app.get("/", (req, res) => {

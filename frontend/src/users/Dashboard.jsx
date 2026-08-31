@@ -309,7 +309,15 @@ function UserDashboard() {
 
             {/* Equipment Grid */}
             <div className="rounded-2xl bg-white p-6 shadow-md border border-slate-100">
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">Available Equipment</h2>
+              <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <h2 className="text-2xl font-bold text-slate-900">Available Equipment</h2>
+                <Link
+                  to="/equipment"
+                  className="rounded-lg border border-purple-200 bg-purple-50 px-3 py-1.5 text-xs font-bold text-purple-700 hover:bg-purple-100 transition flex items-center gap-1"
+                >
+                  <span>🔬</span> Open Full Equipment Catalog & Filters →
+                </Link>
+              </div>
               {equipments.length === 0 ? (
                 <p className="text-slate-500 text-sm">No equipment available for sharing right now.</p>
               ) : (

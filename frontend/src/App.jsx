@@ -4,6 +4,7 @@ import Navbar from "./components/Navbar";
 
 import Home from "./components/Home";
 import About from "./components/About";
+import Equipment from "./components/Equipment";
 import Contact from "./components/Contact";
 import Footer from "./components/Footer";
 import Signup from "./components/Signup";
@@ -24,12 +25,12 @@ function App() {
       <Routes>
 
         <Route path="/" element={<Home />} />
-
         <Route path="/about" element={<About />} />
-
+        <Route path="/equipment" element={<Equipment />} />
+        <Route path="/equipments" element={<Equipment />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/signup" element={<Signup/>} />
-        <Route path="/login" element={<Login/>} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
 
         {/* Dashboard routes */}
         <Route path="/user/dashboard" element={<UserDashboard />} />
