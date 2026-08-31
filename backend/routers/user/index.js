@@ -357,8 +357,7 @@ router.post("/recommend-equipment", async (req, res) => {
     console.error("AI Recommendation Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to generate AI recommendations.",
-      error: error.message
+      message: error.message || "Failed to generate AI recommendations."
     });
   }
 });

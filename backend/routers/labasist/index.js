@@ -477,8 +477,7 @@ router.post("/equipments/generate-description", async (req, res) => {
     console.error("AI Description Generation Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to generate AI description.",
-      error: error.message
+      message: error.message || "Failed to generate AI description."
     });
   }
 });
