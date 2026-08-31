@@ -192,11 +192,21 @@ router.get("/history", async (req, res) => {
     // Run overdue checker to ensure stats and status are correct
     await Booking.checkOverdue();
 
-    // Find equipment belonging to HOD's department
+    // 1. Find equipment belonging to HOD's department
     const equipments = await Equipment.find({ department: req.user.department });
     const equipIds = equipments.map(e => e._id);
 
-    const bookings = await Booking.find({ equipment: { $in: equipIds } })
+    // 2. Find students belonging to HOD's department
+    const deptStudents = await User.find({ department: req.user.department, role: "student" });
+    const studentIds = deptStudents.map(s => s._id);
+
+    // 3. Find all bookings involving department equipment OR department students
+    const bookings = await Booking.find({
+      $or: [
+        { equipment: { $in: equipIds } },
+        { user: { $in: studentIds } }
+      ]
+    })
       .populate("equipment")
       .populate("user", "name email studentId phone department semester")
       .populate("approvedBy", "name email")

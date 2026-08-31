@@ -76,7 +76,12 @@ router.post("/equipments", async (req, res) => {
  */
 router.get("/equipments", async (req, res) => {
   try {
-    const equipments = await Equipment.find({ department: req.user.department }).sort({ name: 1 });
+    const equipments = await Equipment.find({
+      $or: [
+        { department: req.user.department },
+        { addedBy: req.user._id }
+      ]
+    }).sort({ createdAt: -1 });
     return res.status(200).json({
       success: true,
       count: equipments.length,
@@ -230,6 +235,46 @@ router.get("/bookings", async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error fetching bookings.",
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   GET /api/labasist/history
+ * @desc    Get borrowing and return history for lab assistant's department & assigned equipment
+ * @access  Private (Lab Assistant)
+ */
+router.get("/history", async (req, res) => {
+  try {
+    // Run overdue checker to ensure stats and status are correct
+    await Booking.checkOverdue();
+
+    // Find equipment belonging to lab assistant's department OR added by them
+    const equipments = await Equipment.find({
+      $or: [
+        { department: req.user.department },
+        { addedBy: req.user._id }
+      ]
+    });
+    const equipIds = equipments.map(e => e._id);
+
+    const bookings = await Booking.find({ equipment: { $in: equipIds } })
+      .populate("equipment")
+      .populate("user", "name email studentId phone department semester")
+      .populate("approvedBy", "name email")
+      .sort({ updatedAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: bookings.length,
+      bookings
+    });
+  } catch (error) {
+    console.error("Labasist History Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error fetching lab history.",
       error: error.message
     });
   }

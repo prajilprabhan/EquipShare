@@ -24,6 +24,9 @@ function AdminDashboard() {
   const [filterRole, setFilterRole] = useState("all");
   const [filterDept, setFilterDept] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [historySearch, setHistorySearch] = useState("");
+  const [historyDeptFilter, setHistoryDeptFilter] = useState("all");
+  const [historyStatusFilter, setHistoryStatusFilter] = useState("all");
   const [changingPasswordUser, setChangingPasswordUser] = useState(null);
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(true);
@@ -581,61 +584,172 @@ function AdminDashboard() {
         {/* Tab Contents: System History */}
         {activeTab === "history" && (
           <div className="rounded-2xl bg-white p-6 shadow-md border border-slate-100 animate-fadeIn">
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">Department-Wise Booking Logs</h2>
-            {historyList.length === 0 ? (
-              <p className="text-slate-500 text-sm py-4">No equipment borrowings recorded in the system.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-700 text-xs font-semibold uppercase tracking-wider">
-                      <th className="py-3 px-4 text-left align-middle">Borrower</th>
-                      <th className="py-3 px-4 text-left align-middle">Equipment</th>
-                      <th className="py-3 px-4 text-left align-middle">Department</th>
-                      <th className="py-3 px-4 text-center align-middle">Qty</th>
-                      <th className="py-3 px-4 text-left align-middle">Period</th>
-                      <th className="py-3 px-4 text-center align-middle">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 text-sm text-slate-800">
-                    {historyList.map((log) => (
-                      <tr key={log._id} className="hover:bg-slate-50/50">
-                        <td className="py-4 px-4 text-left align-middle">
-                          <span className="font-semibold text-slate-950 block">{log.user?.name || "Deleted User"}</span>
-                          <span className="block text-xs font-normal text-slate-500">ID: {log.user?.studentId}</span>
-                        </td>
-                        <td className="py-4 px-4 text-left align-middle font-semibold text-purple-900">
-                          {log.equipment?.name || "Deleted Equipment"}
-                          <span className="block text-xs font-normal text-slate-500 font-sans">Cat: {log.equipment?.category}</span>
-                        </td>
-                        <td className="py-4 px-4 text-left align-middle capitalize text-slate-700">{log.equipment?.department.replace("_", " ") || "N/A"}</td>
-                        <td className="py-4 px-4 text-center align-middle font-semibold whitespace-nowrap">
-                          <span className="inline-flex items-center justify-center px-2 py-0.5 rounded bg-slate-100 text-slate-800 text-xs">
-                            {log.quantity}
-                          </span>
-                        </td>
-                        <td className="py-4 px-4 text-left align-middle text-xs text-slate-600 whitespace-nowrap">
-                          {new Date(log.startDate).toLocaleDateString()} - {new Date(log.endDate).toLocaleDateString()}
-                        </td>
-                        <td className="py-4 px-4 text-center align-middle whitespace-nowrap">
-                          <span className={`inline-flex items-center justify-center text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
-                            log.status === "approved" || log.status === "returned"
-                              ? "bg-green-100 text-green-800"
-                              : log.status === "pending"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : log.status === "rejected"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-purple-100 text-purple-800"
-                          }`}>
-                            {log.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Campus-Wide Department Borrowing History</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Audit log of all inter-departmental equipment borrowings, checkouts, and returns</p>
               </div>
-            )}
+            </div>
+
+            {/* History Filter Bar */}
+            <div className="mb-6 grid gap-4 sm:grid-cols-3 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                  Search Logs
+                </label>
+                <input
+                  type="text"
+                  placeholder="Search student, ID, equipment..."
+                  value={historySearch}
+                  onChange={(e) => setHistorySearch(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                  Filter by Department
+                </label>
+                <select
+                  value={historyDeptFilter}
+                  onChange={(e) => setHistoryDeptFilter(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="all">All Academic Departments</option>
+                  <option value="computer_science">💻 Computer Science</option>
+                  <option value="electronics">⚡ Electronics & Comm</option>
+                  <option value="mechanical">⚙️ Mechanical Engineering</option>
+                  <option value="civil">🏗️ Civil Engineering</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                  Filter by Status
+                </label>
+                <select
+                  value={historyStatusFilter}
+                  onChange={(e) => setHistoryStatusFilter(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="all">All Borrowing Statuses</option>
+                  <option value="pending">Pending Review</option>
+                  <option value="approved">Approved for Pickup</option>
+                  <option value="borrowed">Currently Borrowed</option>
+                  <option value="returned">Successfully Returned</option>
+                  <option value="rejected">Rejected Requests</option>
+                </select>
+              </div>
+            </div>
+
+            {(() => {
+              const filteredHistory = historyList.filter((log) => {
+                const matchesDept =
+                  historyDeptFilter === "all" ||
+                  log.equipment?.department === historyDeptFilter ||
+                  log.user?.department === historyDeptFilter;
+
+                const matchesStatus =
+                  historyStatusFilter === "all" || log.status === historyStatusFilter;
+
+                const term = historySearch.toLowerCase();
+                const matchesSearch =
+                  !historySearch ||
+                  log.user?.name?.toLowerCase().includes(term) ||
+                  log.user?.studentId?.toLowerCase().includes(term) ||
+                  log.equipment?.name?.toLowerCase().includes(term) ||
+                  log.equipment?.modelNumber?.toLowerCase().includes(term) ||
+                  log.equipment?.serialNumber?.toLowerCase().includes(term);
+
+                return matchesDept && matchesStatus && matchesSearch;
+              });
+
+              if (filteredHistory.length === 0) {
+                return (
+                  <p className="text-slate-500 text-sm py-8 text-center bg-slate-50 rounded-xl border border-slate-100">
+                    No borrowing records found matching your filters.
+                  </p>
+                );
+              }
+
+              return (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-slate-700 text-xs font-semibold uppercase tracking-wider">
+                        <th className="py-3 px-4 text-left align-middle">Borrower & Dept</th>
+                        <th className="py-3 px-4 text-left align-middle">Equipment Details</th>
+                        <th className="py-3 px-4 text-left align-middle">Owning Lab / Dept</th>
+                        <th className="py-3 px-4 text-center align-middle">Qty</th>
+                        <th className="py-3 px-4 text-left align-middle">Period</th>
+                        <th className="py-3 px-4 text-center align-middle">Status</th>
+                        <th className="py-3 px-4 text-left align-middle">Approved By</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-sm text-slate-800">
+                      {filteredHistory.map((log) => (
+                        <tr key={log._id} className="hover:bg-slate-50/50">
+                          <td className="py-4 px-4 text-left align-middle">
+                            <span className="font-bold text-slate-950 block">{log.user?.name || "Deleted User"}</span>
+                            <span className="block text-xs text-slate-500">ID: {log.user?.studentId}</span>
+                            <span className="block text-[10px] text-purple-700 font-semibold uppercase">
+                              {log.user?.department?.replace("_", " ") || "STUDENT"}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4 text-left align-middle">
+                            <p className="font-bold text-purple-950">{log.equipment?.name || "Deleted Equipment"}</p>
+                            <p className="text-xs text-slate-500">Cat: {log.equipment?.category}</p>
+                            {(log.equipment?.modelNumber || log.equipment?.serialNumber) && (
+                              <p className="text-[10px] text-slate-400 font-mono">
+                                {log.equipment?.modelNumber && `Mod: ${log.equipment.modelNumber}`} {log.equipment?.serialNumber && `| SN: ${log.equipment.serialNumber}`}
+                              </p>
+                            )}
+                          </td>
+                          <td className="py-4 px-4 text-left align-middle whitespace-nowrap">
+                            <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 border border-purple-200 uppercase mb-1">
+                              {log.equipment?.department?.replace("_", " ") || "GENERAL"}
+                            </span>
+                            <p className="text-xs text-slate-500">📍 {log.equipment?.location || "Main Lab"}</p>
+                          </td>
+                          <td className="py-4 px-4 text-center align-middle font-semibold whitespace-nowrap">
+                            <span className="inline-flex items-center justify-center px-2.5 py-1 rounded bg-slate-100 text-slate-800 text-xs">
+                              {log.quantity}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4 text-left align-middle text-xs text-slate-600 whitespace-nowrap">
+                            <p>From: {new Date(log.startDate).toLocaleDateString()}</p>
+                            <p>To: {new Date(log.endDate).toLocaleDateString()}</p>
+                          </td>
+                          <td className="py-4 px-4 text-center align-middle whitespace-nowrap">
+                            <span className={`inline-flex items-center justify-center text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
+                              log.status === "approved" || log.status === "returned"
+                                ? "bg-green-100 text-green-800"
+                                : log.status === "pending"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : log.status === "rejected"
+                                ? "bg-red-100 text-red-800"
+                                : "bg-purple-100 text-purple-800"
+                            }`}>
+                              {log.status}
+                            </span>
+                          </td>
+                          <td className="py-4 px-4 text-left align-middle text-xs text-slate-600">
+                            {log.approvedBy?.name ? (
+                              <div>
+                                <span className="font-semibold text-slate-800 block">{log.approvedBy.name}</span>
+                                <span className="text-[10px] text-slate-400">{log.approvedBy.email}</span>
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 italic">Pending Action</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
           </div>
         )}
 

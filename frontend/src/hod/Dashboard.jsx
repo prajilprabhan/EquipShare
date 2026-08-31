@@ -461,7 +461,12 @@ function HodDashboard() {
                         </td>
                         <td className="py-4 px-4 text-left align-middle font-semibold text-purple-900">
                           {log.equipment?.name || "Deleted Equipment"}
-                          <span className="block text-xs font-normal text-slate-500">Cat: {log.equipment?.category}</span>
+                          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 uppercase">
+                              {log.equipment?.department?.replace("_", " ") || "DEPT"}
+                            </span>
+                            <span className="text-xs font-normal text-slate-500">📍 {log.equipment?.location || "Main Lab"}</span>
+                          </div>
                         </td>
                         <td className="py-4 px-4 text-center align-middle font-semibold whitespace-nowrap">
                           <span className="inline-flex items-center justify-center px-2 py-0.5 rounded bg-slate-100 text-slate-800 text-xs">

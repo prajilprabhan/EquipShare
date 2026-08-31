@@ -325,4 +325,47 @@ router.get("/stats", async (req, res) => {
   }
 });
 
+/**
+ * @route   GET /api/admin/history
+ * @desc    Get full campus borrowing history across all departments
+ * @access  Private (Admin)
+ */
+router.get("/history", async (req, res) => {
+  try {
+    await Booking.checkOverdue();
+    const { department, status } = req.query;
+
+    let query = {};
+    if (status && status !== "all") {
+      query.status = status;
+    }
+
+    let bookings = await Booking.find(query)
+      .populate("equipment")
+      .populate("user", "name email studentId phone department semester")
+      .populate("approvedBy", "name email")
+      .sort({ createdAt: -1 });
+
+    if (department && department !== "all") {
+      bookings = bookings.filter(b => 
+        (b.equipment && b.equipment.department === department) ||
+        (b.user && b.user.department === department)
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
+      count: bookings.length,
+      bookings
+    });
+  } catch (error) {
+    console.error("Admin Get History Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error fetching campus borrowing history.",
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;
