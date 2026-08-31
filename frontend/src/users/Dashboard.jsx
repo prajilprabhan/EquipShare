@@ -243,8 +243,8 @@ function UserDashboard() {
           </div>
         )}
 
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Main left content: Browse and book */}
+        <div className="grid gap-8 lg:grid-cols-3 items-start">
+          {/* Main left content: AI Matcher & Catalog (Span 2) */}
           <div className="lg:col-span-2 space-y-8">
             {/* AI Advisor Panel */}
             <div className="rounded-2xl bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 p-6 text-white shadow-lg border border-purple-900/50">
@@ -322,7 +322,7 @@ function UserDashboard() {
                                 key={match._id}
                                 onClick={() => {
                                   setSelectedEquip(match);
-                                  window.scrollTo({ top: 400, behavior: 'smooth' });
+                                  window.scrollTo({ top: 120, behavior: 'smooth' });
                                 }}
                                 className="rounded-lg bg-purple-500/20 hover:bg-purple-500/45 border border-purple-400/30 px-3 py-1.5 text-xs font-semibold text-purple-100 transition flex items-center gap-1.5"
                               >
@@ -344,7 +344,7 @@ function UserDashboard() {
               <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div>
                   <h2 className="text-2xl font-bold text-slate-900">Available Department Equipment</h2>
-                  <p className="text-xs text-slate-500 mt-0.5">Click on any equipment card to request borrowing</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Click any equipment card below to fill out the booking form on the right</p>
                 </div>
                 <Link
                   to="/equipment"
@@ -360,19 +360,21 @@ function UserDashboard() {
                   {equipments.map((equip) => {
                     const isAvailable = equip.status === "available" && equip.availableQuantity > 0;
                     const deptInfo = getDeptBadge(equip.department);
+                    const isSelected = selectedEquip?._id === equip._id;
                     return (
                       <div 
                         key={equip._id} 
                         className={`cursor-pointer rounded-xl p-5 border transition-all flex flex-col justify-between ${
                           !isAvailable
                             ? "bg-slate-50/50 border-slate-200 opacity-60 hover:border-slate-200 cursor-not-allowed"
-                            : selectedEquip?._id === equip._id 
-                            ? "border-purple-600 bg-purple-50/40 shadow-md ring-2 ring-purple-400/40" 
+                            : isSelected
+                            ? "border-purple-600 bg-purple-50/40 shadow-md ring-2 ring-purple-500/50" 
                             : "border-slate-200 hover:border-purple-300 hover:shadow-sm"
                         }`}
                         onClick={() => {
                           if (isAvailable) {
                             setSelectedEquip(equip);
+                            window.scrollTo({ top: 120, behavior: 'smooth' });
                           }
                         }}
                       >
@@ -437,11 +439,11 @@ function UserDashboard() {
 
                         <div className="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center text-xs">
                           <span className="text-slate-400 text-[11px]">
-                            {equip.status === "available" && equip.availableQuantity > 0 ? "Ready for Checkout" : "Currently Unavailable"}
+                            {equip.status === "available" && equip.availableQuantity > 0 ? "Ready for Request" : "Currently Locked"}
                           </span>
                           {isAvailable ? (
-                            <span className={`font-bold transition ${selectedEquip?._id === equip._id ? "text-purple-700" : "text-purple-600 hover:text-purple-800"}`}>
-                              {selectedEquip?._id === equip._id ? "✓ Selected for Request" : "Select to Request →"}
+                            <span className={`font-bold transition ${isSelected ? "text-purple-700" : "text-purple-600 hover:text-purple-800"}`}>
+                              {isSelected ? "✓ Active in Booking Form" : "Select to Request →"}
                             </span>
                           ) : (
                             <span className="text-slate-400 font-medium">Request Locked</span>
@@ -453,169 +455,193 @@ function UserDashboard() {
                 </div>
               )}
             </div>
-
-            {/* Booking Form (Visible when equipment selected) */}
-            {selectedEquip && (
-              <div className="rounded-2xl bg-white p-6 shadow-md border border-purple-200 animate-fadeIn">
-                <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-                  <div>
-                    <h2 className="text-2xl font-bold text-slate-900">Request Equipment Booking</h2>
-                    <p className="text-xs text-slate-500 mt-0.5">Submit request to your department HOD and Lab Assistant</p>
-                  </div>
-                  <button 
-                    onClick={() => setSelectedEquip(null)}
-                    className="text-xs font-semibold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-lg transition"
-                  >
-                    ✕ Close Request
-                  </button>
-                </div>
-
-                {/* Selected Item Full Specs Box */}
-                <div className="mb-6 rounded-xl bg-purple-50 p-4 border border-purple-100">
-                  <div className="flex items-start justify-between gap-4 flex-wrap">
-                    <div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${getDeptBadge(selectedEquip.department).bg}`}>
-                        {getDeptBadge(selectedEquip.department).label}
-                      </span>
-                      <h3 className="text-lg font-bold text-purple-950 mt-1">{selectedEquip.name}</h3>
-                      <p className="text-xs text-slate-600 mt-1">{selectedEquip.description}</p>
-                    </div>
-                    <div className="text-right text-xs text-slate-700 space-y-0.5 shrink-0">
-                      <p>📍 Location: <strong>{selectedEquip.location || "Department Main Lab"}</strong></p>
-                      <p>🏷️ Category: <strong>{selectedEquip.category}</strong></p>
-                      <p>📦 Available: <strong className="text-green-700">{selectedEquip.availableQuantity} of {selectedEquip.totalQuantity}</strong></p>
-                      {(selectedEquip.modelNumber || selectedEquip.serialNumber) && (
-                        <p className="text-[10px] text-slate-500 font-mono">
-                          {selectedEquip.modelNumber && `Mod: ${selectedEquip.modelNumber}`} {selectedEquip.serialNumber && `| SN: ${selectedEquip.serialNumber}`}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <form onSubmit={handleBookingSubmit} className="space-y-4">
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Quantity (Max: {selectedEquip.availableQuantity})</label>
-                      <input 
-                        type="number" 
-                        min="1" 
-                        max={selectedEquip.availableQuantity}
-                        value={bookingForm.quantity}
-                        onChange={(e) => setBookingForm({...bookingForm, quantity: e.target.value})}
-                        required
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-950 focus:ring-2 focus:ring-purple-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Start Date</label>
-                      <input 
-                        type="date" 
-                        value={bookingForm.startDate}
-                        onChange={(e) => setBookingForm({...bookingForm, startDate: e.target.value})}
-                        required
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-950 focus:ring-2 focus:ring-purple-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">End Date</label>
-                      <input 
-                        type="date" 
-                        value={bookingForm.endDate}
-                        onChange={(e) => setBookingForm({...bookingForm, endDate: e.target.value})}
-                        required
-                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-950 focus:ring-2 focus:ring-purple-500 outline-none"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Purpose / Project Title</label>
-                    <textarea 
-                      rows="2"
-                      placeholder="Please specify why you need this equipment (e.g. Capstone project, embedded IoT experiment, VLSI lab assignment)..."
-                      value={bookingForm.purpose}
-                      onChange={(e) => setBookingForm({...bookingForm, purpose: e.target.value})}
-                      required
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-950 focus:ring-2 focus:ring-purple-500 outline-none"
-                    />
-                  </div>
-                  <div className="flex justify-end gap-3 pt-2">
-                    <button 
-                      type="button" 
-                      onClick={() => setSelectedEquip(null)}
-                      className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition"
-                    >
-                      Cancel
-                    </button>
-                    <button 
-                      type="submit"
-                      className="rounded-lg bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 px-6 py-2 text-sm font-bold text-white shadow-md transition"
-                    >
-                      Submit Request to Lab
-                    </button>
-                  </div>
-                </form>
-              </div>
-            )}
           </div>
 
-          {/* Right column: Bookings list */}
-          <div className="rounded-2xl bg-white p-6 shadow-md border border-slate-100 self-start">
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">My Bookings</h2>
-            {bookings.length === 0 ? (
-              <p className="text-slate-500 text-sm">You haven't requested any bookings yet.</p>
-            ) : (
-              <div className="space-y-4">
-                {bookings.map((booking) => (
-                  <div key={booking._id} className="rounded-xl border border-slate-100 p-4 shadow-sm bg-slate-50/50 space-y-2">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-bold text-slate-900 text-sm">{booking.equipment?.name || "Equipment deleted"}</h4>
-                        {booking.equipment?.department && (
-                          <span className="text-[10px] font-semibold text-purple-700 uppercase">
-                            {booking.equipment.department.replace("_", " ")}
-                          </span>
-                        )}
-                      </div>
-                      <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
-                        booking.status === "approved" || booking.status === "returned"
-                          ? "bg-green-100 text-green-800"
-                          : booking.status === "pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : booking.status === "rejected"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-purple-100 text-purple-800"
-                      }`}>
-                        {booking.status}
-                      </span>
-                    </div>
-
-                    <div className="text-xs text-slate-600 space-y-1 bg-white p-2.5 rounded-lg border border-slate-100">
-                      <p>📍 Location: <strong>{booking.equipment?.location || "Main Department Lab"}</strong></p>
-                      <p>📦 Quantity: <strong>{booking.quantity} unit(s)</strong></p>
-                      <p>📅 Dates: <strong>{new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}</strong></p>
-                      {booking.purpose && (
-                        <p className="text-slate-500 italic">"{booking.purpose}"</p>
-                      )}
-                      {booking.rejectionReason && (
-                        <p className="text-red-600 mt-2 bg-red-50 p-2 rounded">Reason: {booking.rejectionReason}</p>
-                      )}
-                    </div>
-
-                    {booking.status === "pending" && (
-                      <button
-                        onClick={() => handleCancelBooking(booking._id)}
-                        className="text-xs font-semibold text-red-600 hover:text-red-800 transition pt-1"
-                      >
-                        ✕ Cancel Request
-                      </button>
-                    )}
-                  </div>
-                ))}
+          {/* Right column: Quick Booking Guide & My Bookings navigation */}
+          <div className="lg:col-span-1 space-y-6 lg:sticky lg:top-24">
+            {/* Quick Booking Guide Card */}
+            <div className="rounded-2xl bg-white p-6 shadow-md border border-slate-100 space-y-4">
+              <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+                <span className="text-xl">🚀</span>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-base">How to Borrow Tools</h3>
+                  <p className="text-[11px] text-slate-500">Fast 3-step institutional equipment checkout</p>
+                </div>
               </div>
-            )}
+
+              <div className="space-y-3 text-xs text-slate-600">
+                <div className="flex gap-3 items-start">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-100 text-purple-700 font-bold text-[10px]">1</span>
+                  <p><strong className="text-slate-900">Select an apparatus</strong> from the catalog or AI recommendations on the left.</p>
+                </div>
+                <div className="flex gap-3 items-start">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-100 text-purple-700 font-bold text-[10px]">2</span>
+                  <p><strong className="text-slate-900">Fill the pop-up request form</strong> specifying your quantity, dates, and purpose.</p>
+                </div>
+                <div className="flex gap-3 items-start">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-purple-100 text-purple-700 font-bold text-[10px]">3</span>
+                  <p><strong className="text-slate-900">Pick up from lab location</strong> once approved by your HOD and Lab Assistant.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* My Bookings Dedicated Page Link Card */}
+            <div className="rounded-2xl bg-gradient-to-br from-slate-900 to-purple-950 p-6 text-white shadow-md border border-purple-900/40 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <span>📋</span> My Bookings
+                  </h3>
+                  <p className="text-xs text-purple-200 mt-0.5">Track your requests & borrowed tools</p>
+                </div>
+                <span className="rounded-full bg-purple-500/30 border border-purple-400/30 px-3 py-1 text-xs font-bold text-purple-200">
+                  {bookings.length} Total
+                </span>
+              </div>
+
+              <div className="space-y-2 text-xs text-purple-100 bg-white/5 p-3 rounded-xl border border-white/10">
+                <div className="flex justify-between">
+                  <span>⏳ Pending Review:</span>
+                  <strong className="text-yellow-400">{bookings.filter(b => b.status === "pending").length}</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span>✅ Active / Approved:</span>
+                  <strong className="text-green-400">{bookings.filter(b => b.status === "approved" || b.status === "borrowed").length}</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span>📦 Completed / Returned:</span>
+                  <strong className="text-purple-300">{bookings.filter(b => b.status === "returned").length}</strong>
+                </div>
+              </div>
+
+              <Link
+                to="/user/bookings"
+                className="w-full rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs py-2.5 px-4 text-center transition block shadow-md"
+              >
+                Open Full My Bookings Page →
+              </Link>
+            </div>
           </div>
         </div>
+
+        {/* Pop-up Modal Dialog for Requesting Equipment */}
+        {selectedEquip && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 overflow-y-auto animate-fadeIn">
+            <div className="w-full max-w-xl rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 animate-scaleUp my-8">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                    <span>📝</span> Request Equipment Booking
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">Submit request for departmental approval and pickup</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedEquip(null)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition text-sm font-bold"
+                  title="Close modal"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Selected Equipment Specifications Highlight */}
+              <div className="mb-4 rounded-xl bg-purple-50 p-4 border border-purple-100 space-y-2">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${getDeptBadge(selectedEquip.department).bg}`}>
+                    {getDeptBadge(selectedEquip.department).label}
+                  </span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 bg-white/80 px-2 py-0.5 rounded border border-purple-100">
+                    {selectedEquip.category}
+                  </span>
+                </div>
+                <h3 className="font-bold text-purple-950 text-base">{selectedEquip.name}</h3>
+                <p className="text-xs text-slate-600 leading-relaxed">{selectedEquip.description}</p>
+                <div className="grid grid-cols-2 gap-2 text-xs text-slate-700 pt-2 border-t border-purple-200/50">
+                  <p>📍 Location: <strong>{selectedEquip.location || "Department Main Lab"}</strong></p>
+                  <p>📦 Stock: <strong className="text-green-700">{selectedEquip.availableQuantity} of {selectedEquip.totalQuantity} available</strong></p>
+                  {(selectedEquip.modelNumber || selectedEquip.serialNumber) && (
+                    <p className="col-span-2 text-[10px] text-slate-500 font-mono">
+                      {selectedEquip.modelNumber && `Model: ${selectedEquip.modelNumber}`} {selectedEquip.serialNumber && `| SN: ${selectedEquip.serialNumber}`}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Request Form */}
+              <form onSubmit={handleBookingSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Quantity to Borrow (Max: {selectedEquip.availableQuantity})
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={selectedEquip.availableQuantity}
+                    value={bookingForm.quantity}
+                    onChange={(e) => setBookingForm({ ...bookingForm, quantity: e.target.value })}
+                    required
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-950 focus:ring-2 focus:ring-purple-500 outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">Start Date</label>
+                    <input
+                      type="date"
+                      value={bookingForm.startDate}
+                      onChange={(e) => setBookingForm({ ...bookingForm, startDate: e.target.value })}
+                      required
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-950 focus:ring-2 focus:ring-purple-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1">End Date</label>
+                    <input
+                      type="date"
+                      value={bookingForm.endDate}
+                      onChange={(e) => setBookingForm({ ...bookingForm, endDate: e.target.value })}
+                      required
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-950 focus:ring-2 focus:ring-purple-500 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Purpose / Experiment Details
+                  </label>
+                  <textarea
+                    rows="3"
+                    placeholder="e.g., Final year capstone project testing, embedded IoT sensor calibration, VLSI lab assignment..."
+                    value={bookingForm.purpose}
+                    onChange={(e) => setBookingForm({ ...bookingForm, purpose: e.target.value })}
+                    required
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-950 focus:ring-2 focus:ring-purple-500 outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedEquip(null)}
+                    className="rounded-lg border border-slate-300 px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="rounded-lg bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 px-6 py-2 text-xs font-bold text-white shadow-md transition"
+                  >
+                    Submit Booking Request →
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -75,6 +75,14 @@ function Navbar() {
 
           {token && user ? (
             <div className="flex items-center gap-3">
+              {user.role === "student" && (
+                <Link
+                  to="/user/bookings"
+                  className="transition hover:text-purple-400 font-medium text-slate-200 text-xs sm:text-sm flex items-center gap-1"
+                >
+                  <span>📋</span> My Bookings
+                </Link>
+              )}
               <Link
                 to={dashboardPath}
                 className="rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:from-purple-700 hover:to-indigo-700 transition"
