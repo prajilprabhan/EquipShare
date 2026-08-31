@@ -14,6 +14,9 @@ function UserDashboard() {
     startDate: "",
     endDate: "",
   });
+  const [projectDescription, setProjectDescription] = useState("");
+  const [aiRecommendation, setAiRecommendation] = useState("");
+  const [isQueryingAI, setIsQueryingAI] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -107,6 +110,41 @@ function UserDashboard() {
     }
   };
 
+  const handleQueryAI = async (e) => {
+    e.preventDefault();
+    if (!projectDescription.trim()) {
+      setError("Please describe your project first.");
+      return;
+    }
+    setError("");
+    setSuccess("");
+    setAiRecommendation("");
+    setIsQueryingAI(true);
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/user/recommend-equipment`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ projectDescription }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to query AI recommendations.");
+      }
+
+      setAiRecommendation(data.recommendation);
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setIsQueryingAI(false);
+    }
+  };
+
   const handleCancelBooking = async (bookingId) => {
     if (!window.confirm("Are you sure you want to cancel this booking request?")) return;
     setError("");
@@ -174,6 +212,100 @@ function UserDashboard() {
         <div className="grid gap-8 lg:grid-cols-3">
           {/* Main left content: Browse and book */}
           <div className="lg:col-span-2 space-y-8">
+            {/* AI Advisor Panel */}
+            <div className="rounded-2xl bg-gradient-to-r from-purple-950 via-indigo-950 to-slate-900 p-6 text-white shadow-lg border border-purple-900/50">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xl">✨</span>
+                <h2 className="text-xl font-bold text-white">AI Equipment Matcher</h2>
+              </div>
+              <p className="text-xs text-purple-200 mb-4">
+                Describe your project or what you want to measure, and our AI will recommend the exact tools from the catalog below!
+              </p>
+              
+              <form onSubmit={handleQueryAI} className="space-y-4">
+                <div>
+                  <textarea
+                    rows="2"
+                    placeholder="e.g., I want to measure the electrical output of a solar panel and plot the current vs voltage curves..."
+                    value={projectDescription}
+                    onChange={(e) => setProjectDescription(e.target.value)}
+                    className="w-full rounded-lg border border-purple-800 bg-purple-950/40 px-3 py-2 text-sm text-white placeholder-purple-300/60 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <div className="flex justify-between items-center">
+                  <button
+                    type="submit"
+                    disabled={isQueryingAI}
+                    className="rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600 px-5 py-2 font-bold text-white text-xs shadow-md transition disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {isQueryingAI ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Analyzing...
+                      </>
+                    ) : (
+                      "✨ Ask AI Advisor"
+                    )}
+                  </button>
+                  {aiRecommendation && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAiRecommendation("");
+                        setProjectDescription("");
+                      }}
+                      className="text-purple-300 hover:text-white transition text-xs font-semibold"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </form>
+
+              {aiRecommendation && (
+                <div className="mt-5 rounded-xl bg-purple-950/60 p-4 border border-purple-800/50 space-y-4 animate-fadeIn">
+                  <div className="text-xs text-purple-100 leading-relaxed whitespace-pre-line">
+                    {aiRecommendation}
+                  </div>
+
+                  {/* Clickable selectors based on recommendation */}
+                  {(() => {
+                    const matches = equipments.filter((e) =>
+                      aiRecommendation.toLowerCase().includes(e.name.toLowerCase())
+                    );
+                    if (matches.length > 0) {
+                      return (
+                        <div className="border-t border-purple-800/40 pt-3">
+                          <p className="text-xxs font-semibold text-purple-300 uppercase tracking-wider mb-2">
+                            Quick Select Matches found in catalog:
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {matches.map((match) => (
+                              <button
+                                key={match._id}
+                                onClick={() => {
+                                  setSelectedEquip(match);
+                                  // Scroll slightly to let the user see the request form
+                                  window.scrollTo({ top: 400, behavior: 'smooth' });
+                                }}
+                                className="rounded-lg bg-purple-500/20 hover:bg-purple-500/45 border border-purple-400/30 px-3 py-1.5 text-xs font-semibold text-purple-100 transition flex items-center gap-1.5"
+                              >
+                                🎯 Select {match.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
+              )}
+            </div>
+
             {/* Equipment Grid */}
             <div className="rounded-2xl bg-white p-6 shadow-md border border-slate-100">
               <h2 className="text-2xl font-bold text-slate-900 mb-4">Available Equipment</h2>
