@@ -1,8 +1,5 @@
 @import "tailwindcss";
-
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-
-@import "tailwindcss";
 
 @theme {
   --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
@@ -17,19 +14,46 @@
   --color-slate-600: #52525b;
   --color-slate-700: #3f3f46;
   --color-slate-800: #18181b;
-  --color-slate-900: #0a0a0a; /* Premium deep black */
+  --color-slate-900: #0a0a0a;
   --color-slate-950: #030303;
 
   /* Overwrite Blue palette with a vibrant Dark Purple accent scale */
   --color-blue-50: #faf5ff;
-  --color-blue-100: #ffffff; /* Crisp white for text readability instead of light purple */
-  --color-blue-200: #d8b4fe; /* Focus ring */
+  --color-blue-100: #ffffff;
+  --color-blue-200: #d8b4fe;
   --color-blue-300: #a855f7;
-  --color-blue-400: #8b5cf6; /* Vibrant, rich purple for logo/text highlights */
+  --color-blue-400: #8b5cf6;
   --color-blue-500: #7c3aed;
-  --color-blue-600: #6d28d9; /* Deep, rich dark purple for CTA & buttons */
-  --color-blue-700: #5b21b6; /* Hover state dark purple */
+  --color-blue-600: #6d28d9;
+  --color-blue-700: #5b21b6;
   --color-blue-800: #4c1d95;
-  --color-blue-900: #2e0854; /* Deep dark purple-black for gradient end */
+  --color-blue-900: #2e0854;
   --color-blue-950: #1c0236;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out forwards;
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.25s ease-out forwards;
 }

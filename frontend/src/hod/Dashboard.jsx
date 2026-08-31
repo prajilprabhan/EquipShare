@@ -30,8 +30,14 @@ function HodDashboard() {
       return;
     }
 
-    const parsedUser = JSON.parse(storedUser);
-    if (parsedUser.role !== "hod") {
+    let parsedUser = null;
+    try {
+      parsedUser = storedUser ? JSON.parse(storedUser) : null;
+    } catch (e) {
+      parsedUser = null;
+    }
+
+    if (!parsedUser || parsedUser.role !== "hod") {
       navigate("/login");
       return;
     }
@@ -303,36 +309,38 @@ function HodDashboard() {
               <p className="text-slate-500 text-sm py-4">No student registrations pending review in your department.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-200 text-slate-700 text-sm font-semibold">
-                      <th className="py-3 px-4">Name</th>
-                      <th className="py-3 px-4">Student ID</th>
-                      <th className="py-3 px-4">Email</th>
-                      <th className="py-3 px-4">Semester</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
+                    <tr className="border-b border-slate-200 text-slate-700 text-xs font-semibold uppercase tracking-wider">
+                      <th className="py-3 px-4 text-left align-middle">Name</th>
+                      <th className="py-3 px-4 text-left align-middle">Student ID</th>
+                      <th className="py-3 px-4 text-left align-middle">Email</th>
+                      <th className="py-3 px-4 text-center align-middle">Semester</th>
+                      <th className="py-3 px-4 text-right align-middle">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm text-slate-800">
                     {pendingStudents.map((student) => (
                       <tr key={student._id} className="hover:bg-slate-50/50">
-                        <td className="py-4 px-4 font-semibold text-slate-950">{student.name}</td>
-                        <td className="py-4 px-4">{student.studentId}</td>
-                        <td className="py-4 px-4">{student.email}</td>
-                        <td className="py-4 px-4">Semester {student.semester}</td>
-                        <td className="py-4 px-4 text-right space-x-2">
-                          <button
-                            onClick={() => handleVerify(student._id, "rejected")}
-                            className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition"
-                          >
-                            Reject
-                          </button>
-                          <button
-                            onClick={() => handleVerify(student._id, "approved")}
-                            className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 transition"
-                          >
-                            Approve
-                          </button>
+                        <td className="py-4 px-4 text-left align-middle font-semibold text-slate-950">{student.name}</td>
+                        <td className="py-4 px-4 text-left align-middle text-slate-600">{student.studentId}</td>
+                        <td className="py-4 px-4 text-left align-middle text-slate-600">{student.email}</td>
+                        <td className="py-4 px-4 text-center align-middle whitespace-nowrap">Semester {student.semester}</td>
+                        <td className="py-4 px-4 text-right align-middle whitespace-nowrap">
+                          <div className="inline-flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleVerify(student._id, "rejected")}
+                              className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition"
+                            >
+                              Reject
+                            </button>
+                            <button
+                              onClick={() => handleVerify(student._id, "approved")}
+                              className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 transition"
+                            >
+                              Approve
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -351,26 +359,26 @@ function HodDashboard() {
               <p className="text-slate-500 text-sm py-4">No student registrations found in your department.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-200 text-slate-700 text-sm font-semibold">
-                      <th className="py-3 px-4">Name</th>
-                      <th className="py-3 px-4">Student ID</th>
-                      <th className="py-3 px-4">Email</th>
-                      <th className="py-3 px-4">Semester</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
+                    <tr className="border-b border-slate-200 text-slate-700 text-xs font-semibold uppercase tracking-wider">
+                      <th className="py-3 px-4 text-left align-middle">Name</th>
+                      <th className="py-3 px-4 text-left align-middle">Student ID</th>
+                      <th className="py-3 px-4 text-left align-middle">Email</th>
+                      <th className="py-3 px-4 text-center align-middle">Semester</th>
+                      <th className="py-3 px-4 text-center align-middle">Status</th>
+                      <th className="py-3 px-4 text-right align-middle">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm text-slate-800">
                     {allStudents.map((student) => (
                       <tr key={student._id} className="hover:bg-slate-50/50">
-                        <td className="py-4 px-4 font-semibold text-slate-950">{student.name}</td>
-                        <td className="py-4 px-4">{student.studentId}</td>
-                        <td className="py-4 px-4">{student.email}</td>
-                        <td className="py-4 px-4">Semester {student.semester}</td>
-                        <td className="py-4 px-4">
-                          <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
+                        <td className="py-4 px-4 text-left align-middle font-semibold text-slate-950">{student.name}</td>
+                        <td className="py-4 px-4 text-left align-middle text-slate-600">{student.studentId}</td>
+                        <td className="py-4 px-4 text-left align-middle text-slate-600">{student.email}</td>
+                        <td className="py-4 px-4 text-center align-middle whitespace-nowrap">Semester {student.semester}</td>
+                        <td className="py-4 px-4 text-center align-middle whitespace-nowrap">
+                          <span className={`inline-flex items-center justify-center text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
                             student.verificationStatus === "approved"
                               ? "bg-green-100 text-green-800"
                               : student.verificationStatus === "pending"
@@ -380,39 +388,41 @@ function HodDashboard() {
                             {student.verificationStatus === "approved" ? "Active" : student.verificationStatus === "pending" ? "Pending Approval" : "Restricted"}
                           </span>
                         </td>
-                        <td className="py-4 px-4 text-right space-x-2">
-                          {student.verificationStatus === "approved" && (
-                            <button
-                              onClick={() => handleVerify(student._id, "rejected")}
-                              className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition"
-                            >
-                              Restrict Login
-                            </button>
-                          )}
-                          {student.verificationStatus === "rejected" && (
-                            <button
-                              onClick={() => handleVerify(student._id, "approved")}
-                              className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 transition"
-                            >
-                              Enable Login
-                            </button>
-                          )}
-                          {student.verificationStatus === "pending" && (
-                            <>
+                        <td className="py-4 px-4 text-right align-middle whitespace-nowrap">
+                          <div className="inline-flex items-center justify-end gap-2">
+                            {student.verificationStatus === "approved" && (
                               <button
                                 onClick={() => handleVerify(student._id, "rejected")}
-                                className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition"
+                                className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 transition"
                               >
-                                Reject
+                                Restrict Login
                               </button>
+                            )}
+                            {student.verificationStatus === "rejected" && (
                               <button
                                 onClick={() => handleVerify(student._id, "approved")}
                                 className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 transition"
                               >
-                                Approve
+                                Enable Login
                               </button>
-                            </>
-                          )}
+                            )}
+                            {student.verificationStatus === "pending" && (
+                              <>
+                                <button
+                                  onClick={() => handleVerify(student._id, "rejected")}
+                                  className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition"
+                                >
+                                  Reject
+                                </button>
+                                <button
+                                  onClick={() => handleVerify(student._id, "approved")}
+                                  className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 transition"
+                                >
+                                  Approve
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -431,34 +441,38 @@ function HodDashboard() {
               <p className="text-slate-500 text-sm py-4">No equipment borrowings recorded in your department.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-200 text-slate-700 text-sm font-semibold">
-                      <th className="py-3 px-4">Student</th>
-                      <th className="py-3 px-4">Equipment</th>
-                      <th className="py-3 px-4">Qty</th>
-                      <th className="py-3 px-4">Period</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 font-semibold">Approved By</th>
+                    <tr className="border-b border-slate-200 text-slate-700 text-xs font-semibold uppercase tracking-wider">
+                      <th className="py-3 px-4 text-left align-middle">Student</th>
+                      <th className="py-3 px-4 text-left align-middle">Equipment</th>
+                      <th className="py-3 px-4 text-center align-middle">Qty</th>
+                      <th className="py-3 px-4 text-left align-middle">Period</th>
+                      <th className="py-3 px-4 text-center align-middle">Status</th>
+                      <th className="py-3 px-4 text-right align-middle">Approved By</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm text-slate-800">
                     {historyList.map((log) => (
                       <tr key={log._id} className="hover:bg-slate-50/50">
-                        <td className="py-4 px-4 font-semibold text-slate-950">
+                        <td className="py-4 px-4 text-left align-middle font-semibold text-slate-950">
                           {log.user?.name || "Deleted Student"}
                           <span className="block text-xs font-normal text-slate-500">ID: {log.user?.studentId}</span>
                         </td>
-                        <td className="py-4 px-4 font-semibold text-purple-900">
+                        <td className="py-4 px-4 text-left align-middle font-semibold text-purple-900">
                           {log.equipment?.name || "Deleted Equipment"}
                           <span className="block text-xs font-normal text-slate-500">Cat: {log.equipment?.category}</span>
                         </td>
-                        <td className="py-4 px-4 font-semibold">{log.quantity}</td>
-                        <td className="py-4 px-4 text-xs text-slate-600">
+                        <td className="py-4 px-4 text-center align-middle font-semibold whitespace-nowrap">
+                          <span className="inline-flex items-center justify-center px-2 py-0.5 rounded bg-slate-100 text-slate-800 text-xs">
+                            {log.quantity}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-left align-middle text-xs text-slate-600 whitespace-nowrap">
                           {new Date(log.startDate).toLocaleDateString()} - {new Date(log.endDate).toLocaleDateString()}
                         </td>
-                        <td className="py-4 px-4">
-                          <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
+                        <td className="py-4 px-4 text-center align-middle whitespace-nowrap">
+                          <span className={`inline-flex items-center justify-center text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
                             log.status === "approved" || log.status === "returned"
                               ? "bg-green-100 text-green-800"
                               : log.status === "pending"
@@ -470,7 +484,7 @@ function HodDashboard() {
                             {log.status}
                           </span>
                         </td>
-                        <td className="py-4 px-4 text-xs">{log.approvedBy?.name || "N/A"}</td>
+                        <td className="py-4 px-4 text-right align-middle text-xs text-slate-600 whitespace-nowrap">{log.approvedBy?.name || "N/A"}</td>
                       </tr>
                     ))}
                   </tbody>

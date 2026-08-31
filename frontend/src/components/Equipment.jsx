@@ -32,7 +32,12 @@ function Equipment() {
 
   const userStr = localStorage.getItem("user");
   const token = localStorage.getItem("token");
-  const user = userStr ? JSON.parse(userStr) : null;
+  let user = null;
+  try {
+    user = userStr && userStr !== "undefined" && userStr !== "null" ? JSON.parse(userStr) : null;
+  } catch (e) {
+    user = null;
+  }
   const isStudent = user && user.role === "student";
 
   const fetchEquipments = async () => {
@@ -168,13 +173,13 @@ function Equipment() {
       <section className="bg-gradient-to-br from-slate-950 via-purple-950 to-slate-900 px-6 py-16 text-center text-white border-b border-purple-900/40">
         <div className="mx-auto max-w-4xl">
           <span className="inline-block rounded-full bg-purple-500/20 border border-purple-400/30 px-4 py-1 text-xs font-bold text-purple-300 uppercase tracking-widest mb-3">
-            Campus Laboratory Inventory
+            Department-Wise Laboratory Inventory
           </span>
           <h1 className="text-3xl font-extrabold sm:text-5xl text-white">
-            Institutional Equipment Catalog
+            Institutional Department Equipment Catalog
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-sm md:text-base text-purple-200">
-            Browse and discover laboratory instruments, computing kits, and precision apparatus available across all university academic departments.
+            Browse and discover laboratory instruments, computing kits, and precision apparatus available across all academic departments in our institution.
           </p>
 
           <div className="mt-6 flex flex-wrap justify-center gap-3">
@@ -280,7 +285,7 @@ function Equipment() {
                   if (matches.length > 0) {
                     return (
                       <div className="border-t border-purple-800/40 pt-3">
-                        <p className="text-xxs font-bold text-purple-300 uppercase tracking-wider mb-2">
+                        <p className="text-[10px] font-bold text-purple-300 uppercase tracking-wider mb-2">
                           Matches Found in Available Inventory:
                         </p>
                         <div className="flex flex-wrap gap-2">
@@ -392,10 +397,10 @@ function Equipment() {
                   <div>
                     {/* Header: Dept Badge & Category */}
                     <div className="flex items-center justify-between gap-2 mb-3">
-                      <span className="rounded-md bg-purple-50 text-purple-700 font-bold text-xxs px-2.5 py-1 uppercase tracking-wider">
+                      <span className="rounded-md bg-purple-50 text-purple-700 font-bold text-[10px] px-2.5 py-1 uppercase tracking-wider">
                         {getDeptIcon(item.department)}
                       </span>
-                      <span className="text-xxs font-semibold uppercase tracking-wider text-slate-500">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                         {item.category}
                       </span>
                     </div>
@@ -430,7 +435,7 @@ function Equipment() {
                         <span>Location: <strong>{item.location || "Department Main Lab"}</strong></span>
                       </p>
                       {(item.modelNumber || item.serialNumber) && (
-                        <p className="text-xxs text-slate-400 font-mono">
+                        <p className="text-[10px] text-slate-400 font-mono">
                           {item.modelNumber && `Model: ${item.modelNumber}`}
                           {item.serialNumber && ` | SN: ${item.serialNumber}`}
                         </p>
@@ -474,7 +479,7 @@ function Equipment() {
       {selectedEquip && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 animate-scaleUp">
-            <div className="flex items-center justify-between border-b border-slate-150 pb-3 mb-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3 mb-4">
               <div>
                 <h3 className="text-lg font-bold text-slate-900">Borrow Request</h3>
                 <p className="text-xs text-purple-700 font-semibold">{selectedEquip.name}</p>
@@ -490,7 +495,7 @@ function Equipment() {
             </div>
 
             <form onSubmit={handleBookingSubmit} className="space-y-4">
-              <div className="rounded-xl bg-slate-50 p-3 text-xs text-slate-600 border border-slate-150 space-y-1">
+              <div className="rounded-xl bg-slate-50 p-3 text-xs text-slate-600 border border-slate-200 space-y-1">
                 <p>Department: <strong className="capitalize">{selectedEquip.department.replace("_", " ")}</strong></p>
                 <p>Available in Lab: <strong>{selectedEquip.availableQuantity} units</strong></p>
               </div>

@@ -30,8 +30,14 @@ function UserDashboard() {
       return;
     }
 
-    const parsedUser = JSON.parse(storedUser);
-    if (parsedUser.role !== "student") {
+    let parsedUser = null;
+    try {
+      parsedUser = storedUser ? JSON.parse(storedUser) : null;
+    } catch (e) {
+      parsedUser = null;
+    }
+
+    if (!parsedUser || parsedUser.role !== "student") {
       navigate("/login");
       return;
     }

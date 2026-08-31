@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 function Footer() {
   return (
-    <footer className="bg-slate-950 text-white border-t border-slate-850">
+    <footer className="bg-slate-950 text-white border-t border-slate-800">
 
       {/* Main Footer */}
       <div className="mx-auto max-w-7xl px-6 py-14">
@@ -22,12 +22,12 @@ function Footer() {
             </Link>
 
             <p className="max-w-md leading-relaxed text-slate-400 text-sm">
-              The institutional lab resource & equipment sharing network. Connecting engineering, science, and computing departments to eliminate idle assets and accelerate campus innovation.
+              The institutional department-wise lab equipment sharing network. Connecting engineering, science, and computing departments to eliminate idle assets and accelerate campus innovation.
             </p>
 
             <div className="flex items-center gap-2 text-xs text-purple-300 font-semibold">
               <span className="inline-block h-2 w-2 rounded-full bg-green-400 animate-pulse"></span>
-              Central Instrumentation & Lab Coordination Network
+              Department-Wise Lab Coordination Network
             </div>
 
           </div>

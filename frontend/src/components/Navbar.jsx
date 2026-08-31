@@ -4,10 +4,16 @@ function Navbar() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const userStr = localStorage.getItem("user");
-  const user = userStr ? JSON.parse(userStr) : null;
+  
+  let user = null;
+  try {
+    user = userStr && userStr !== "undefined" && userStr !== "null" ? JSON.parse(userStr) : null;
+  } catch (e) {
+    user = null;
+  }
 
   let dashboardPath = "/";
-  if (user) {
+  if (user && user.role) {
     if (user.role === "student") dashboardPath = "/user/dashboard";
     else if (user.role === "admin") dashboardPath = "/admin/dashboard";
     else if (user.role === "hod") dashboardPath = "/hod/dashboard";
@@ -21,7 +27,7 @@ function Navbar() {
   };
 
   return (
-    <nav className="bg-slate-950 text-white shadow-xl border-b border-slate-850/60 sticky top-0 z-40 backdrop-blur-md bg-slate-950/90">
+    <nav className="bg-slate-950 text-white shadow-xl border-b border-slate-800 sticky top-0 z-40 backdrop-blur-md bg-slate-950/90">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
 
         <Link to="/" className="flex items-center gap-2 group">
@@ -32,7 +38,7 @@ function Navbar() {
             <span className="text-xl font-extrabold tracking-tight text-white">
               Equip<span className="bg-gradient-to-r from-purple-400 to-indigo-400 bg-clip-text text-transparent">Share</span>
             </span>
-            <span className="hidden sm:block text-xxs uppercase tracking-widest text-slate-400 font-semibold -mt-1">
+            <span className="hidden sm:block text-[10px] uppercase tracking-widest text-slate-400 font-semibold -mt-1">
               Campus Lab Network
             </span>
           </div>

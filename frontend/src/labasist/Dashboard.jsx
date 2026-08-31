@@ -41,8 +41,14 @@ function LabasistDashboard() {
       return;
     }
 
-    const parsedUser = JSON.parse(storedUser);
-    if (parsedUser.role !== "labasist") {
+    let parsedUser = null;
+    try {
+      parsedUser = storedUser ? JSON.parse(storedUser) : null;
+    } catch (e) {
+      parsedUser = null;
+    }
+
+    if (!parsedUser || parsedUser.role !== "labasist") {
       navigate("/login");
       return;
     }
@@ -476,31 +482,35 @@ function LabasistDashboard() {
               <p className="text-slate-500 text-sm py-4">No booking requests found for your department's equipment.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-200 text-slate-700 text-sm font-semibold">
-                      <th className="py-3 px-4">Student</th>
-                      <th className="py-3 px-4">Equipment Name</th>
-                      <th className="py-3 px-4">Qty</th>
-                      <th className="py-3 px-4">Dates</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
+                    <tr className="border-b border-slate-200 text-slate-700 text-xs font-semibold uppercase tracking-wider">
+                      <th className="py-3 px-4 text-left align-middle">Student</th>
+                      <th className="py-3 px-4 text-left align-middle">Equipment Name</th>
+                      <th className="py-3 px-4 text-center align-middle">Qty</th>
+                      <th className="py-3 px-4 text-left align-middle">Dates</th>
+                      <th className="py-3 px-4 text-center align-middle">Status</th>
+                      <th className="py-3 px-4 text-right align-middle">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm text-slate-800">
                     {bookings.map((booking) => (
                       <tr key={booking._id} className="hover:bg-slate-50/50">
-                        <td className="py-4 px-4 font-semibold text-slate-950">
-                          {booking.user?.name}
+                        <td className="py-4 px-4 text-left align-middle">
+                          <span className="font-semibold text-slate-950 block">{booking.user?.name}</span>
                           <span className="block text-xs font-normal text-slate-500">ID: {booking.user?.studentId}</span>
                         </td>
-                        <td className="py-4 px-4 font-semibold text-purple-900">{booking.equipment?.name}</td>
-                        <td className="py-4 px-4">{booking.quantity}</td>
-                        <td className="py-4 px-4 text-xs">
+                        <td className="py-4 px-4 text-left align-middle font-semibold text-purple-900">{booking.equipment?.name}</td>
+                        <td className="py-4 px-4 text-center align-middle font-semibold whitespace-nowrap">
+                          <span className="inline-flex items-center justify-center px-2.5 py-1 rounded bg-slate-100 text-slate-800 text-xs">
+                            {booking.quantity}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-left align-middle text-xs text-slate-600 whitespace-nowrap">
                           {new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}
                         </td>
-                        <td className="py-4 px-4">
-                          <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
+                        <td className="py-4 px-4 text-center align-middle whitespace-nowrap">
+                          <span className={`inline-flex items-center justify-center text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
                             booking.status === "approved" || booking.status === "returned"
                               ? "bg-green-100 text-green-800"
                               : booking.status === "pending"
@@ -512,39 +522,41 @@ function LabasistDashboard() {
                             {booking.status}
                           </span>
                         </td>
-                        <td className="py-4 px-4 text-right space-x-2">
-                          {booking.status === "pending" && (
-                            <>
+                        <td className="py-4 px-4 text-right align-middle whitespace-nowrap">
+                          <div className="inline-flex items-center justify-end gap-2">
+                            {booking.status === "pending" && (
+                              <>
+                                <button
+                                  onClick={() => handleUpdateBookingStatus(booking._id, "rejected")}
+                                  className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition"
+                                >
+                                  Reject
+                                </button>
+                                <button
+                                  onClick={() => handleUpdateBookingStatus(booking._id, "approved")}
+                                  className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 transition"
+                                >
+                                  Approve
+                                </button>
+                              </>
+                            )}
+                            {booking.status === "approved" && (
                               <button
-                                onClick={() => handleUpdateBookingStatus(booking._id, "rejected")}
-                                className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition"
+                                onClick={() => handleUpdateBookingStatus(booking._id, "borrowed")}
+                                className="rounded-lg bg-purple-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-800 transition"
                               >
-                                Reject
+                                Mark Borrowed
                               </button>
+                            )}
+                            {booking.status === "borrowed" && (
                               <button
-                                onClick={() => handleUpdateBookingStatus(booking._id, "approved")}
-                                className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-green-700 transition"
+                                onClick={() => handleUpdateBookingStatus(booking._id, "returned")}
+                                className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition"
                               >
-                                Approve
+                                Mark Returned
                               </button>
-                            </>
-                          )}
-                          {booking.status === "approved" && (
-                            <button
-                              onClick={() => handleUpdateBookingStatus(booking._id, "borrowed")}
-                              className="rounded-lg bg-purple-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-purple-800 transition"
-                            >
-                              Mark Borrowed
-                            </button>
-                          )}
-                          {booking.status === "borrowed" && (
-                            <button
-                              onClick={() => handleUpdateBookingStatus(booking._id, "returned")}
-                              className="rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-700 transition"
-                            >
-                              Mark Returned
-                            </button>
-                          )}
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -564,38 +576,27 @@ function LabasistDashboard() {
                 <h3 className="text-xl font-bold text-slate-900 mb-3">Edit Equipment: {editingEquip.name}</h3>
                 <form onSubmit={handleUpdateEquipment} className="grid gap-4 md:grid-cols-4 items-end">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Total Quantity</label>
-                    <input
-                      type="number"
-                      min="0"
-                      required
-                      value={editForm.totalQuantity}
-                      onChange={(e) => setEditForm({ ...editForm, totalQuantity: parseInt(e.target.value) || 0 })}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-950"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Available Quantity</label>
-                    <input
-                      type="number"
-                      min="0"
-                      required
-                      value={editForm.availableQuantity}
-                      onChange={(e) => setEditForm({ ...editForm, availableQuantity: parseInt(e.target.value) || 0 })}
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-950"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Status / Availability</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
                     <select
                       value={editForm.status}
                       onChange={(e) => setEditForm({ ...editForm, status: e.target.value })}
-                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-950"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-950"
                     >
                       <option value="available">Available</option>
-                      <option value="unavailable">Unavailable (Disabled)</option>
                       <option value="maintenance">Maintenance</option>
+                      <option value="damaged">Damaged</option>
                     </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">Available Qty</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max={editingEquip.totalQuantity}
+                      value={editForm.availableQuantity}
+                      onChange={(e) => setEditForm({ ...editForm, availableQuantity: Number(e.target.value) })}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-950"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Location</label>
@@ -606,19 +607,19 @@ function LabasistDashboard() {
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-950"
                     />
                   </div>
-                  <div className="md:col-span-4 flex justify-end gap-2 mt-2">
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      className="flex-1 rounded-lg bg-purple-700 py-2 font-semibold text-white hover:bg-purple-800 transition text-sm"
+                    >
+                      Save
+                    </button>
                     <button
                       type="button"
                       onClick={() => setEditingEquip(null)}
-                      className="rounded-lg border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50 transition"
+                      className="rounded-lg border border-slate-300 px-4 py-2 text-slate-700 hover:bg-slate-50 transition text-sm"
                     >
                       Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      className="rounded-lg bg-purple-700 px-5 py-2 font-semibold text-white hover:bg-purple-800 transition"
-                    >
-                      Save Changes
                     </button>
                   </div>
                 </form>
@@ -632,37 +633,41 @@ function LabasistDashboard() {
                 <p className="text-slate-500 text-sm py-4">No equipment added to your department catalog yet.</p>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
+                  <table className="w-full border-collapse">
                     <thead>
-                      <tr className="border-b border-slate-200 text-slate-700 text-sm font-semibold">
-                        <th className="py-3 px-4">Equipment</th>
-                        <th className="py-3 px-4">Category</th>
-                        <th className="py-3 px-4">Qty (Avail / Total)</th>
-                        <th className="py-3 px-4">Location</th>
-                        <th className="py-3 px-4">Availability</th>
-                        <th className="py-3 px-4 text-right">Actions</th>
+                      <tr className="border-b border-slate-200 text-slate-700 text-xs font-semibold uppercase tracking-wider">
+                        <th className="py-3 px-4 text-left align-middle min-w-[220px]">Equipment</th>
+                        <th className="py-3 px-4 text-left align-middle">Category</th>
+                        <th className="py-3 px-4 text-center align-middle">Qty (Avail / Total)</th>
+                        <th className="py-3 px-4 text-left align-middle">Location</th>
+                        <th className="py-3 px-4 text-center align-middle">Availability</th>
+                        <th className="py-3 px-4 text-right align-middle">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 text-sm text-slate-800">
                       {equipmentsList.map((equip) => (
                         <tr key={equip._id} className="hover:bg-slate-50/50">
-                          <td className="py-4 px-4">
-                            <p className="font-semibold text-slate-950">{equip.name}</p>
-                            <p className="text-xs text-slate-500">{equip.description}</p>
+                          <td className="py-4 px-4 text-left align-middle">
+                            <p className="font-semibold text-slate-950 text-sm">{equip.name}</p>
+                            <p className="text-xs text-slate-500 line-clamp-2 mt-0.5 leading-relaxed" title={equip.description}>
+                              {equip.description}
+                            </p>
                             {(equip.modelNumber || equip.serialNumber) && (
-                              <p className="text-xxs text-slate-400 mt-0.5">
+                              <p className="text-xxs text-slate-400 mt-1 font-mono">
                                 {equip.modelNumber && `Model: ${equip.modelNumber}`} 
                                 {equip.serialNumber && ` | SN: ${equip.serialNumber}`}
                               </p>
                             )}
                           </td>
-                          <td className="py-4 px-4 capitalize">{equip.category}</td>
-                          <td className="py-4 px-4 font-semibold">
-                            {equip.availableQuantity} / {equip.totalQuantity}
+                          <td className="py-4 px-4 text-left align-middle capitalize whitespace-nowrap text-slate-700">{equip.category}</td>
+                          <td className="py-4 px-4 text-center align-middle font-semibold whitespace-nowrap">
+                            <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-md bg-slate-100 text-slate-800 text-xs font-semibold">
+                              {equip.availableQuantity} / {equip.totalQuantity}
+                            </span>
                           </td>
-                          <td className="py-4 px-4 text-xs text-slate-600">{equip.location || "N/A"}</td>
-                          <td className="py-4 px-4">
-                            <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
+                          <td className="py-4 px-4 text-left align-middle text-xs text-slate-600 whitespace-nowrap">{equip.location || "N/A"}</td>
+                          <td className="py-4 px-4 text-center align-middle whitespace-nowrap">
+                            <span className={`inline-flex items-center justify-center text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
                               equip.status === "available"
                                 ? "bg-green-100 text-green-800"
                                 : equip.status === "maintenance"
@@ -672,19 +677,21 @@ function LabasistDashboard() {
                               {equip.status}
                             </span>
                           </td>
-                          <td className="py-4 px-4 text-right space-x-2">
-                            <button
-                              onClick={() => startEditing(equip)}
-                              className="rounded-lg border border-purple-200 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-50 transition"
-                            >
-                              Edit Status
-                            </button>
-                            <button
-                              onClick={() => handleDeleteEquipment(equip._id)}
-                              className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition"
-                            >
-                              Delete
-                            </button>
+                          <td className="py-4 px-4 text-right align-middle whitespace-nowrap">
+                            <div className="inline-flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => startEditing(equip)}
+                                className="rounded-lg border border-purple-200 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-50 transition whitespace-nowrap"
+                              >
+                                Edit Status
+                              </button>
+                              <button
+                                onClick={() => handleDeleteEquipment(equip._id)}
+                                className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition whitespace-nowrap"
+                              >
+                                Delete
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -704,31 +711,35 @@ function LabasistDashboard() {
               <p className="text-slate-500 text-sm py-4">No completed borrowings logged in your department.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-200 text-slate-700 text-sm font-semibold">
-                      <th className="py-3 px-4">Student</th>
-                      <th className="py-3 px-4">Equipment</th>
-                      <th className="py-3 px-4">Qty</th>
-                      <th className="py-3 px-4">Borrowing Period</th>
-                      <th className="py-3 px-4">Status</th>
-                      <th className="py-3 px-4">Date Actioned</th>
+                    <tr className="border-b border-slate-200 text-slate-700 text-xs font-semibold uppercase tracking-wider">
+                      <th className="py-3 px-4 text-left align-middle">Student</th>
+                      <th className="py-3 px-4 text-left align-middle">Equipment</th>
+                      <th className="py-3 px-4 text-center align-middle">Qty</th>
+                      <th className="py-3 px-4 text-left align-middle">Borrowing Period</th>
+                      <th className="py-3 px-4 text-center align-middle">Status</th>
+                      <th className="py-3 px-4 text-right align-middle">Date Actioned</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm text-slate-800">
                     {historyList.map((log) => (
                       <tr key={log._id} className="hover:bg-slate-50/50">
-                        <td className="py-4 px-4 font-semibold text-slate-950">
+                        <td className="py-4 px-4 text-left align-middle font-semibold text-slate-950">
                           {log.user?.name || "Deleted User"}
                           <span className="block text-xs font-normal text-slate-500">ID: {log.user?.studentId}</span>
                         </td>
-                        <td className="py-4 px-4 font-semibold text-purple-900">{log.equipment?.name}</td>
-                        <td className="py-4 px-4 font-semibold">{log.quantity}</td>
-                        <td className="py-4 px-4 text-xs text-slate-600">
+                        <td className="py-4 px-4 text-left align-middle font-semibold text-purple-900">{log.equipment?.name}</td>
+                        <td className="py-4 px-4 text-center align-middle font-semibold whitespace-nowrap">
+                          <span className="inline-flex items-center justify-center px-2 py-0.5 rounded bg-slate-100 text-slate-800 text-xs">
+                            {log.quantity}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-left align-middle text-xs text-slate-600 whitespace-nowrap">
                           {new Date(log.startDate).toLocaleDateString()} - {new Date(log.endDate).toLocaleDateString()}
                         </td>
-                        <td className="py-4 px-4">
-                          <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
+                        <td className="py-4 px-4 text-center align-middle whitespace-nowrap">
+                          <span className={`inline-flex items-center justify-center text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
                             log.status === "approved" || log.status === "returned"
                               ? "bg-green-100 text-green-800"
                               : log.status === "pending"
@@ -740,7 +751,7 @@ function LabasistDashboard() {
                             {log.status}
                           </span>
                         </td>
-                        <td className="py-4 px-4 text-xs text-slate-500">
+                        <td className="py-4 px-4 text-right align-middle text-xs text-slate-500 whitespace-nowrap">
                           {log.returnedDate
                             ? `Returned: ${new Date(log.returnedDate).toLocaleDateString()}`
                             : `Updated: ${new Date(log.updatedAt).toLocaleDateString()}`}

@@ -39,8 +39,14 @@ function AdminDashboard() {
       return;
     }
 
-    const parsedUser = JSON.parse(storedUser);
-    if (parsedUser.role !== "admin") {
+    let parsedUser = null;
+    try {
+      parsedUser = storedUser ? JSON.parse(storedUser) : null;
+    } catch (e) {
+      parsedUser = null;
+    }
+
+    if (!parsedUser || parsedUser.role !== "admin") {
       navigate("/login");
       return;
     }
@@ -503,15 +509,15 @@ function AdminDashboard() {
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
+              <table className="w-full border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200 text-slate-700 text-sm font-semibold">
-                    <th className="py-3 px-4">User</th>
-                    <th className="py-3 px-4">College Email</th>
-                    <th className="py-3 px-4">Department</th>
-                    <th className="py-3 px-4">Current Role</th>
-                    <th className="py-3 px-4">Verification</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
+                  <tr className="border-b border-slate-200 text-slate-700 text-xs font-semibold uppercase tracking-wider">
+                    <th className="py-3 px-4 text-left align-middle">User</th>
+                    <th className="py-3 px-4 text-left align-middle">College Email</th>
+                    <th className="py-3 px-4 text-left align-middle">Department</th>
+                    <th className="py-3 px-4 text-center align-middle">Current Role</th>
+                    <th className="py-3 px-4 text-center align-middle">Verification</th>
+                    <th className="py-3 px-4 text-right align-middle">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm text-slate-800">
@@ -524,15 +530,15 @@ function AdminDashboard() {
                   ) : (
                     filteredUsers.map((usr) => (
                       <tr key={usr._id} className="hover:bg-slate-50/50">
-                        <td className="py-4 px-4 font-semibold text-slate-950">
-                          {usr.name}
+                        <td className="py-4 px-4 text-left align-middle">
+                          <span className="font-semibold text-slate-950 block">{usr.name}</span>
                           <span className="block text-xs font-normal text-slate-500">ID: {usr.studentId}</span>
                         </td>
-                        <td className="py-4 px-4">{usr.email}</td>
-                        <td className="py-4 px-4 capitalize">{usr.department.replace("_", " ")}</td>
-                        <td className="py-4 px-4 capitalize font-medium text-slate-950">{usr.role}</td>
-                        <td className="py-4 px-4">
-                          <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
+                        <td className="py-4 px-4 text-left align-middle text-slate-600">{usr.email}</td>
+                        <td className="py-4 px-4 text-left align-middle capitalize">{usr.department.replace("_", " ")}</td>
+                        <td className="py-4 px-4 text-center align-middle capitalize font-medium text-slate-950 whitespace-nowrap">{usr.role}</td>
+                        <td className="py-4 px-4 text-center align-middle whitespace-nowrap">
+                          <span className={`inline-flex items-center justify-center text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
                             usr.verificationStatus === "approved"
                               ? "bg-green-100 text-green-800"
                               : usr.verificationStatus === "pending"
@@ -542,24 +548,26 @@ function AdminDashboard() {
                             {usr.verificationStatus}
                           </span>
                         </td>
-                        <td className="py-4 px-4 text-right space-x-2">
-                          <button
-                            onClick={() => {
-                              setChangingPasswordUser(usr);
-                              setNewPassword("");
-                            }}
-                            className="rounded-lg border border-purple-200 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-50 transition"
-                          >
-                            🔑 Password
-                          </button>
-                          {user?._id !== usr._id && (
+                        <td className="py-4 px-4 text-right align-middle whitespace-nowrap">
+                          <div className="inline-flex items-center justify-end gap-2">
                             <button
-                              onClick={() => handleDeleteUser(usr._id)}
-                              className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition"
+                              onClick={() => {
+                                setChangingPasswordUser(usr);
+                                setNewPassword("");
+                              }}
+                              className="rounded-lg border border-purple-200 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-50 transition whitespace-nowrap"
                             >
-                              Delete
+                              🔑 Password
                             </button>
-                          )}
+                            {user?._id !== usr._id && (
+                              <button
+                                onClick={() => handleDeleteUser(usr._id)}
+                                className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition whitespace-nowrap"
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -578,35 +586,39 @@ function AdminDashboard() {
               <p className="text-slate-500 text-sm py-4">No equipment borrowings recorded in the system.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
+                <table className="w-full border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-200 text-slate-700 text-sm font-semibold">
-                      <th className="py-3 px-4">Borrower</th>
-                      <th className="py-3 px-4">Equipment</th>
-                      <th className="py-3 px-4">Department</th>
-                      <th className="py-3 px-4">Qty</th>
-                      <th className="py-3 px-4">Period</th>
-                      <th className="py-3 px-4">Status</th>
+                    <tr className="border-b border-slate-200 text-slate-700 text-xs font-semibold uppercase tracking-wider">
+                      <th className="py-3 px-4 text-left align-middle">Borrower</th>
+                      <th className="py-3 px-4 text-left align-middle">Equipment</th>
+                      <th className="py-3 px-4 text-left align-middle">Department</th>
+                      <th className="py-3 px-4 text-center align-middle">Qty</th>
+                      <th className="py-3 px-4 text-left align-middle">Period</th>
+                      <th className="py-3 px-4 text-center align-middle">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-sm text-slate-800">
                     {historyList.map((log) => (
                       <tr key={log._id} className="hover:bg-slate-50/50">
-                        <td className="py-4 px-4 font-semibold text-slate-950">
-                          {log.user?.name || "Deleted User"}
+                        <td className="py-4 px-4 text-left align-middle">
+                          <span className="font-semibold text-slate-950 block">{log.user?.name || "Deleted User"}</span>
                           <span className="block text-xs font-normal text-slate-500">ID: {log.user?.studentId}</span>
                         </td>
-                        <td className="py-4 px-4 font-semibold text-purple-900">
+                        <td className="py-4 px-4 text-left align-middle font-semibold text-purple-900">
                           {log.equipment?.name || "Deleted Equipment"}
                           <span className="block text-xs font-normal text-slate-500 font-sans">Cat: {log.equipment?.category}</span>
                         </td>
-                        <td className="py-4 px-4 capitalize">{log.equipment?.department.replace("_", " ") || "N/A"}</td>
-                        <td className="py-4 px-4 font-semibold">{log.quantity}</td>
-                        <td className="py-4 px-4 text-xs text-slate-600">
+                        <td className="py-4 px-4 text-left align-middle capitalize text-slate-700">{log.equipment?.department.replace("_", " ") || "N/A"}</td>
+                        <td className="py-4 px-4 text-center align-middle font-semibold whitespace-nowrap">
+                          <span className="inline-flex items-center justify-center px-2 py-0.5 rounded bg-slate-100 text-slate-800 text-xs">
+                            {log.quantity}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-left align-middle text-xs text-slate-600 whitespace-nowrap">
                           {new Date(log.startDate).toLocaleDateString()} - {new Date(log.endDate).toLocaleDateString()}
                         </td>
-                        <td className="py-4 px-4">
-                          <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
+                        <td className="py-4 px-4 text-center align-middle whitespace-nowrap">
+                          <span className={`inline-flex items-center justify-center text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
                             log.status === "approved" || log.status === "returned"
                               ? "bg-green-100 text-green-800"
                               : log.status === "pending"

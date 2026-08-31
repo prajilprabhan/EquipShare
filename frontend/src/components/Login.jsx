@@ -33,7 +33,6 @@ function Login() {
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
-
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,10 +43,14 @@ function Login() {
         }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(data.message || "Invalid email or password.");
+        throw new Error((data && data.message) || `Login failed with status ${response.status}. Please check your credentials.`);
+      }
+
+      if (!data || !data.token || !data.user) {
+        throw new Error("Invalid response received from authentication server.");
       }
 
       // Store token and user details in localStorage
@@ -68,7 +71,11 @@ function Login() {
         navigate("/user/dashboard");
       }
     } catch (err) {
-      setError(err.message || "Failed to sign in. Please check your credentials.");
+      if (err.message && err.message.includes("Failed to fetch")) {
+        setError("Unable to connect to backend server. Please verify your internet connection or backend deployment.");
+      } else {
+        setError(err.message || "Failed to sign in. Please check your credentials.");
+      }
     } finally {
       setLoading(false);
     }
@@ -94,7 +101,7 @@ function Login() {
           </h1>
 
           <p className="mt-2 text-gray-600">
-            Sign in to your EquipShare account
+            Sign in to your institutional department account
           </p>
 
         </div>
@@ -105,8 +112,7 @@ function Login() {
           {/* Verification Notice */}
           <div className="mb-6 rounded-lg border border-purple-200 bg-purple-50 p-4">
             <p className="text-sm leading-6 text-purple-900">
-              Only HOD-verified student accounts can access
-              EquipShare.
+              Department accounts require HOD verification for student borrowing access.
             </p>
           </div>
 

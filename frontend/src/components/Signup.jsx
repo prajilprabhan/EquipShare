@@ -58,7 +58,6 @@ function Signup() {
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
-
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -66,10 +65,10 @@ function Signup() {
         body: JSON.stringify(signupData),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => null);
 
       if (!response.ok) {
-        throw new Error(data.message || "Registration failed. Please try again.");
+        throw new Error((data && data.message) || `Registration failed with status ${response.status}. Please try again.`);
       }
 
       setSuccess("Registration successful! Redirecting to login page...");
@@ -77,7 +76,11 @@ function Signup() {
         navigate("/login");
       }, 2000);
     } catch (err) {
-      setError(err.message || "Failed to connect to the server.");
+      if (err.message && err.message.includes("Failed to fetch")) {
+        setError("Unable to connect to backend server. Please check your internet connection.");
+      } else {
+        setError(err.message || "Failed to connect to the server.");
+      }
     } finally {
       setLoading(false);
     }
@@ -103,7 +106,7 @@ function Signup() {
           </h1>
 
           <p className="mt-2 text-gray-600">
-            Register to access the EquipShare platform
+            Register for institutional department-wise equipment sharing
           </p>
 
         </div>
@@ -115,8 +118,7 @@ function Signup() {
           <div className="mb-6 rounded-lg border border-purple-200 bg-purple-50 p-4">
             <p className="text-sm leading-6 text-purple-900">
               Your registration will be reviewed and verified by
-              your Head of Department (HOD). You will be able to
-              access EquipShare after your account is approved.
+              your Department Head (HOD) for campus-wide equipment borrowing access.
             </p>
           </div>
 
