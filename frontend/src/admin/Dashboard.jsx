@@ -461,8 +461,8 @@ function AdminDashboard() {
                   <option value="all">All Roles</option>
                   <option value="student">Student</option>
                   <option value="hod">HOD</option>
-                  <option value="labasist">Lab Assistant</option>
-                  <option value="admin">Administrator</option>
+                  <option value="labasist">Lab Assist</option>
+                  <option value="admin">Admin</option>
                 </select>
               </div>
 

@@ -18,10 +18,10 @@ const verifyToken = async (req, res, next) => {
       }
     }
 
-    if (!token) {
+    if (!token || !/^[0-9a-fA-F]{24}$/.test(token)) {
       return res.status(401).json({
         success: false,
-        message: "Access denied. No user ID token provided in 'id' or 'Authorization' header."
+        message: "Access denied. Invalid or missing user ID token format."
       });
     }
 
