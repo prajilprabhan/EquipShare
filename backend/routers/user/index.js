@@ -252,7 +252,7 @@ If no equipment is relevant, explain that kindly and suggest what they should lo
       }]
     });
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     if (typeof fetch === "function") {
       fetch(url, {
