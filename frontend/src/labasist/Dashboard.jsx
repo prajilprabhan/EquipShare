@@ -653,7 +653,7 @@ function LabasistDashboard() {
                               {equip.description}
                             </p>
                             {(equip.modelNumber || equip.serialNumber) && (
-                              <p className="text-xxs text-slate-400 mt-1 font-mono">
+                              <p className="text-[10px] text-slate-400 mt-1 font-mono">
                                 {equip.modelNumber && `Model: ${equip.modelNumber}`} 
                                 {equip.serialNumber && ` | SN: ${equip.serialNumber}`}
                               </p>

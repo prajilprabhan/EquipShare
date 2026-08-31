@@ -177,7 +177,7 @@ function Home() {
 
         <div className="grid gap-8 md:grid-cols-3">
           <div className="relative rounded-2xl bg-white p-7 shadow-sm border border-slate-200">
-            <span className="absolute -top-3 left-6 rounded-full bg-purple-700 px-3 py-0.5 text-xxs font-bold text-white uppercase tracking-wider">
+            <span className="absolute -top-3 left-6 rounded-full bg-purple-700 px-3 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
               Step 1: Student Request
             </span>
             <h3 className="mt-3 text-base font-bold text-slate-900">
@@ -189,7 +189,7 @@ function Home() {
           </div>
 
           <div className="relative rounded-2xl bg-white p-7 shadow-sm border border-slate-200">
-            <span className="absolute -top-3 left-6 rounded-full bg-blue-700 px-3 py-0.5 text-xxs font-bold text-white uppercase tracking-wider">
+            <span className="absolute -top-3 left-6 rounded-full bg-blue-700 px-3 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
               Step 2: Department Verification
             </span>
             <h3 className="mt-3 text-base font-bold text-slate-900">
@@ -201,7 +201,7 @@ function Home() {
           </div>
 
           <div className="relative rounded-2xl bg-white p-7 shadow-sm border border-slate-200">
-            <span className="absolute -top-3 left-6 rounded-full bg-emerald-700 px-3 py-0.5 text-xxs font-bold text-white uppercase tracking-wider">
+            <span className="absolute -top-3 left-6 rounded-full bg-emerald-700 px-3 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
               Step 3: Lab Handover
             </span>
             <h3 className="mt-3 text-base font-bold text-slate-900">

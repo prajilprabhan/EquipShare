@@ -34,12 +34,14 @@ const verifyToken = async (req, res, next) => {
       });
     }
 
-    // Check verification status for students
+    // Check verification status for students (allow GET viewing, block booking mutations if not approved)
     if (user.role === "student" && user.verificationStatus !== "approved") {
-      return res.status(403).json({
-        success: false,
-        message: `Access denied. Your account status is ${user.verificationStatus}.`
-      });
+      if (req.method !== "GET") {
+        return res.status(403).json({
+          success: false,
+          message: `Account pending HOD verification. Booking requests will be enabled once your HOD approves your account.`
+        });
+      }
     }
 
     // Attach user to request

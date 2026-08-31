@@ -204,6 +204,18 @@ function UserDashboard() {
           </div>
         </div>
 
+        {user?.verificationStatus === "pending" && (
+          <div className="mb-6 rounded-xl bg-amber-50 p-4 border border-amber-200 text-amber-900 flex items-center gap-3 animate-fadeIn">
+            <span className="text-2xl shrink-0">⏳</span>
+            <div>
+              <p className="font-bold text-sm">Account Verification Pending</p>
+              <p className="text-xs text-amber-700 mt-0.5">
+                Your student registration is awaiting approval from your Head of Department (HOD). You can explore the equipment catalog and use the AI Advisor below. Equipment borrowing requests will be enabled once your HOD approves your account.
+              </p>
+            </div>
+          </div>
+        )}
+
         {error && (
           <div className="mb-6 rounded-lg bg-red-50 p-4 text-sm text-red-600 border border-red-200">
             {error}
@@ -286,7 +298,7 @@ function UserDashboard() {
                     if (matches.length > 0) {
                       return (
                         <div className="border-t border-purple-800/40 pt-3">
-                          <p className="text-xxs font-semibold text-purple-300 uppercase tracking-wider mb-2">
+                          <p className="text-[10px] font-semibold text-purple-300 uppercase tracking-wider mb-2">
                             Quick Select Matches found in catalog:
                           </p>
                           <div className="flex flex-wrap gap-2">
