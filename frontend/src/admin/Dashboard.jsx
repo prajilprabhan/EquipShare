@@ -20,6 +20,12 @@ function AdminDashboard() {
     password: "",
     role: "hod",
   });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterRole, setFilterRole] = useState("all");
+  const [filterDept, setFilterDept] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [changingPasswordUser, setChangingPasswordUser] = useState(null);
+  const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -145,6 +151,39 @@ function AdminDashboard() {
     }
   };
 
+  const handleUpdatePassword = async (userId) => {
+    if (!newPassword || newPassword.trim().length < 4) {
+      setError("Password must be at least 4 characters long.");
+      return;
+    }
+    setError("");
+    setSuccess("");
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ password: newPassword }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to change user password.");
+      }
+
+      setSuccess(`Password for user '${changingPasswordUser.name}' updated successfully.`);
+      setChangingPasswordUser(null);
+      setNewPassword("");
+      fetchAdminData(token);
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    }
+  };
+
   const handleDeleteUser = async (userId) => {
     if (!window.confirm("Are you sure you want to delete this user? This will also remove all their bookings.")) {
       return;
@@ -172,6 +211,26 @@ function AdminDashboard() {
       setError(err.message || "Something went wrong.");
     }
   };
+
+  const filteredUsers = usersList.filter((usr) => {
+    // 1. Search Query filter (matches name, email, or studentId)
+    const matchesSearch =
+      searchQuery.trim() === "" ||
+      usr.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      usr.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      usr.studentId.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // 2. Role filter
+    const matchesRole = filterRole === "all" || usr.role === filterRole;
+
+    // 3. Department filter
+    const matchesDept = filterDept === "all" || usr.department === filterDept;
+
+    // 4. Verification Status filter
+    const matchesStatus = filterStatus === "all" || usr.verificationStatus === filterStatus;
+
+    return matchesSearch && matchesRole && matchesDept && matchesStatus;
+  });
 
   if (loading && !user) {
     return (
@@ -366,6 +425,82 @@ function AdminDashboard() {
         {activeTab === "users" && (
           <div className="rounded-2xl bg-white p-6 shadow-md border border-slate-100">
             <h2 className="text-2xl font-bold text-slate-900 mb-4">User Accounts Management</h2>
+
+            {/* Filter Bar */}
+            <div className="mb-6 grid gap-4 sm:grid-cols-2 md:grid-cols-4 bg-slate-50/50 p-4 rounded-xl border border-slate-100">
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                  Search Users
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search by name, ID, email..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 pl-9 text-sm text-slate-950 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                  Filter by Role
+                </label>
+                <select
+                  value={filterRole}
+                  onChange={(e) => setFilterRole(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="all">All Roles</option>
+                  <option value="student">Student</option>
+                  <option value="hod">HOD</option>
+                  <option value="labasist">Lab Assistant</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                  Filter by Department
+                </label>
+                <select
+                  value={filterDept}
+                  onChange={(e) => setFilterDept(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="all">All Departments</option>
+                  <option value="computer_science">Computer Science</option>
+                  <option value="information_technology">Information Tech</option>
+                  <option value="electronics">Electronics</option>
+                  <option value="mechanical">Mechanical</option>
+                  <option value="civil">Civil</option>
+                  <option value="admin">Administrative</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">
+                  Verification Status
+                </label>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-950 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="approved">Approved</option>
+                  <option value="pending">Pending</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              </div>
+            </div>
+
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -379,48 +514,55 @@ function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm text-slate-800">
-                  {usersList.map((usr) => (
-                    <tr key={usr._id} className="hover:bg-slate-50/50">
-                      <td className="py-4 px-4 font-semibold text-slate-950">
-                        {usr.name}
-                        <span className="block text-xs font-normal text-slate-500">ID: {usr.studentId}</span>
-                      </td>
-                      <td className="py-4 px-4">{usr.email}</td>
-                      <td className="py-4 px-4 capitalize">{usr.department.replace("_", " ")}</td>
-                      <td className="py-4 px-4 capitalize font-medium text-slate-950">{usr.role}</td>
-                      <td className="py-4 px-4">
-                        <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
-                          usr.verificationStatus === "approved"
-                            ? "bg-green-100 text-green-800"
-                            : usr.verificationStatus === "pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
-                        }`}>
-                          {usr.verificationStatus}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 text-right space-x-2">
-                        <select
-                          value={usr.role}
-                          onChange={(e) => handleUpdateRole(usr._id, e.target.value)}
-                          className="rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs outline-none transition focus:border-purple-600 text-slate-950"
-                        >
-                          <option value="student">Student</option>
-                          <option value="hod">HOD</option>
-                          <option value="labasist">Lab Assist</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                        {user?._id !== usr._id && (
-                          <button
-                            onClick={() => handleDeleteUser(usr._id)}
-                            className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition"
-                          >
-                            Delete
-                          </button>
-                        )}
+                  {filteredUsers.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="py-8 text-center text-slate-500 text-sm">
+                        No users found matching your filters.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    filteredUsers.map((usr) => (
+                      <tr key={usr._id} className="hover:bg-slate-50/50">
+                        <td className="py-4 px-4 font-semibold text-slate-950">
+                          {usr.name}
+                          <span className="block text-xs font-normal text-slate-500">ID: {usr.studentId}</span>
+                        </td>
+                        <td className="py-4 px-4">{usr.email}</td>
+                        <td className="py-4 px-4 capitalize">{usr.department.replace("_", " ")}</td>
+                        <td className="py-4 px-4 capitalize font-medium text-slate-950">{usr.role}</td>
+                        <td className="py-4 px-4">
+                          <span className={`text-xs px-2.5 py-0.5 rounded-full font-semibold capitalize ${
+                            usr.verificationStatus === "approved"
+                              ? "bg-green-100 text-green-800"
+                              : usr.verificationStatus === "pending"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
+                          }`}>
+                            {usr.verificationStatus}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 text-right space-x-2">
+                          <button
+                            onClick={() => {
+                              setChangingPasswordUser(usr);
+                              setNewPassword("");
+                            }}
+                            className="rounded-lg border border-purple-200 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-50 transition"
+                          >
+                            🔑 Password
+                          </button>
+                          {user?._id !== usr._id && (
+                            <button
+                              onClick={() => handleDeleteUser(usr._id)}
+                              className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50 transition"
+                            >
+                              Delete
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -481,6 +623,62 @@ function AdminDashboard() {
                 </table>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Change Password Modal */}
+        {changingPasswordUser && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fadeIn">
+            <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-100 animate-scaleUp">
+              <div className="flex items-center justify-between border-b border-slate-150 pb-3 mb-4">
+                <h3 className="text-lg font-bold text-slate-900">Change Password</h3>
+                <button
+                  onClick={() => setChangingPasswordUser(null)}
+                  className="text-slate-400 hover:text-slate-600 transition"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-slate-650">
+                    Set a new password for <strong>{changingPasswordUser.name}</strong> (ID: {changingPasswordUser.studentId}).
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">New Password *</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Min 4 characters"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-950 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setChangingPasswordUser(null)}
+                    className="rounded-lg border border-slate-300 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-50 transition text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleUpdatePassword(changingPasswordUser._id)}
+                    className="rounded-lg bg-purple-700 px-5 py-2 font-semibold text-white hover:bg-purple-800 transition text-sm"
+                  >
+                    Update Password
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

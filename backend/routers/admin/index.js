@@ -152,12 +152,11 @@ router.get("/history", async (req, res) => {
 router.put("/users/:id/role", async (req, res) => {
   try {
     const { role, verificationStatus } = req.body;
-    const allowedRoles = ["student", "admin", "hod", "labasist"];
 
-    if (role && !allowedRoles.includes(role)) {
+    if (role) {
       return res.status(400).json({
         success: false,
-        message: `Invalid role. Must be one of: ${allowedRoles.join(", ")}`
+        message: "User roles cannot be changed once created."
       });
     }
 
@@ -167,10 +166,6 @@ router.put("/users/:id/role", async (req, res) => {
         success: false,
         message: "User not found."
       });
-    }
-
-    if (role) {
-      user.role = role;
     }
     
     if (verificationStatus) {
@@ -195,6 +190,47 @@ router.put("/users/:id/role", async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Server error updating user role.",
+      error: error.message
+    });
+  }
+});
+
+/**
+ * @route   PUT /api/admin/users/:id/password
+ * @desc    Change user's password directly (Admin)
+ * @access  Private (Admin)
+ */
+router.put("/users/:id/password", async (req, res) => {
+  try {
+    const { password } = req.body;
+
+    if (!password || password.trim().length < 4) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 4 characters long."
+      });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found."
+      });
+    }
+
+    user.password = password.trim(); // password is auto-hashed via pre-save hook in User model
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Password for user '${user.name}' updated successfully.`
+    });
+  } catch (error) {
+    console.error("Admin Change Password Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error changing user password.",
       error: error.message
     });
   }
