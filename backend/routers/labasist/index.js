@@ -357,4 +357,130 @@ router.get("/history", async (req, res) => {
   }
 });
 
+// Helper to communicate with Gemini API
+const https = require("https");
+const generateDescriptionFromGemini = (keywords) => {
+  return new Promise((resolve, reject) => {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      return reject(new Error("Gemini API key is not configured in backend .env"));
+    }
+
+    const prompt = `Generate a concise, professional, and detailed description for a lab equipment/tool based on these keywords: "${keywords}". The description should be suitable for a student equipment booking system catalog. Return only the description, without any conversational preamble, markdown formatting (like bolding, lists, or headers), or notes.`;
+
+    const data = JSON.stringify({
+      contents: [{
+        parts: [{
+          text: prompt
+        }]
+      }]
+    });
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    // Try using global fetch if available
+    if (typeof fetch === "function") {
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: data
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(txt => {
+            throw new Error(`Gemini API returned status ${response.status}: ${txt}`);
+          });
+        }
+        return response.json();
+      })
+      .then(jsonData => {
+        try {
+          if (jsonData.candidates && jsonData.candidates[0] && jsonData.candidates[0].content && jsonData.candidates[0].content.parts && jsonData.candidates[0].content.parts[0]) {
+            const text = jsonData.candidates[0].content.parts[0].text.trim();
+            resolve(text);
+          } else {
+            throw new Error("Missing content in candidates");
+          }
+        } catch (e) {
+          reject(new Error("Invalid response format from Gemini API: " + JSON.stringify(jsonData)));
+        }
+      })
+      .catch(err => reject(err));
+      return;
+    }
+
+    // Fallback to native https module if fetch is not available
+    const parsedUrl = new URL(url);
+    const options = {
+      hostname: parsedUrl.hostname,
+      path: parsedUrl.pathname + parsedUrl.search,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(data)
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let body = "";
+      res.on("data", (chunk) => body += chunk);
+      res.on("end", () => {
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          return reject(new Error(`Gemini API returned status ${res.statusCode}: ${body}`));
+        }
+        try {
+          const jsonData = JSON.parse(body);
+          if (jsonData.candidates && jsonData.candidates[0] && jsonData.candidates[0].content && jsonData.candidates[0].content.parts && jsonData.candidates[0].content.parts[0]) {
+            const text = jsonData.candidates[0].content.parts[0].text.trim();
+            resolve(text);
+          } else {
+            throw new Error("Missing content in candidates");
+          }
+        } catch (e) {
+          reject(new Error("Invalid response format from Gemini API: " + body));
+        }
+      });
+    });
+
+    req.on("error", (err) => {
+      reject(err);
+    });
+
+    req.write(data);
+    req.end();
+  });
+};
+
+/**
+ * @route   POST /api/labasist/equipments/generate-description
+ * @desc    Generate AI description of equipment using keywords
+ * @access  Private (Lab Assistant)
+ */
+router.post("/equipments/generate-description", async (req, res) => {
+  try {
+    const { keywords } = req.body;
+    if (!keywords || !keywords.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide keywords to generate a description."
+      });
+    }
+
+    const description = await generateDescriptionFromGemini(keywords.trim());
+    return res.status(200).json({
+      success: true,
+      description
+    });
+  } catch (error) {
+    console.error("AI Description Generation Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to generate AI description.",
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

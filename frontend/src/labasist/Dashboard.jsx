@@ -26,6 +26,8 @@ function LabasistDashboard() {
     totalQuantity: 1,
     location: "",
   });
+  const [aiKeywords, setAiKeywords] = useState("");
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -85,6 +87,43 @@ function LabasistDashboard() {
     }
   };
 
+  const handleGenerateDescription = async () => {
+    if (!aiKeywords.trim()) {
+      setError("Please enter some keywords first.");
+      return;
+    }
+    setError("");
+    setSuccess("");
+    setIsGeneratingDescription(true);
+    const token = localStorage.getItem("token");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/labasist/equipments/generate-description`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ keywords: aiKeywords }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to generate AI description.");
+      }
+
+      setEquipmentForm((prev) => ({
+        ...prev,
+        description: data.description,
+      }));
+      setSuccess("AI description generated successfully!");
+    } catch (err) {
+      setError(err.message || "Something went wrong.");
+    } finally {
+      setIsGeneratingDescription(false);
+    }
+  };
+
   const handleAddEquipment = async (e) => {
     e.preventDefault();
     setError("");
@@ -110,6 +149,7 @@ function LabasistDashboard() {
       }
 
       setSuccess("Equipment added successfully!");
+      setAiKeywords("");
       setEquipmentForm({
         name: "",
         description: "",
@@ -330,6 +370,44 @@ function LabasistDashboard() {
                     className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-950"
                   />
                 </div>
+              </div>
+
+              <div className="rounded-xl bg-purple-50/50 p-4 border border-purple-100/85 space-y-3">
+                <div className="flex flex-col md:flex-row md:items-end gap-3">
+                  <div className="flex-1">
+                    <label className="block text-xs font-semibold text-purple-955 uppercase tracking-wider mb-1">
+                      ✨ AI Keyword Assistant
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. digital multimeter, 10A, auto-ranging, fluke"
+                      value={aiKeywords}
+                      onChange={(e) => setAiKeywords(e.target.value)}
+                      className="w-full rounded-lg border border-purple-200 px-3 py-2 text-sm text-slate-950 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleGenerateDescription}
+                    disabled={isGeneratingDescription}
+                    className="rounded-lg bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-800 hover:to-indigo-800 text-white font-semibold text-sm px-4 py-2 h-10 transition duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow"
+                  >
+                    {isGeneratingDescription ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Generating...
+                      </>
+                    ) : (
+                      "✨ Generate AI Description"
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-purple-700 font-medium">
+                  Enter key characteristics of the tool, click generate, and the description below will be populated.
+                </p>
               </div>
 
               <div>
