@@ -232,10 +232,11 @@ function AdminDashboard() {
     return matchesSearch && matchesRole && matchesDept && matchesStatus;
   });
 
-  if (loading && !user) {
+  if (loading && !stats && usersList.length === 0) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <p className="text-xl font-semibold text-slate-700">Loading admin interface...</p>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 gap-4">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-700"></div>
+        <p className="text-lg font-semibold text-slate-700">Loading admin dashboard...</p>
       </div>
     );
   }
